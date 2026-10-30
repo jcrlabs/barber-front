@@ -1,0 +1,131 @@
+@import '@fontsource/big-shoulders-display/700';
+@import '@fontsource/big-shoulders-display/800';
+@import '@fontsource/big-shoulders-display/900';
+@import '@fontsource-variable/manrope';
+@import '@fontsource/instrument-serif/400';
+@import '@fontsource/instrument-serif/400-italic';
+@import '@fontsource-variable/jetbrains-mono';
+@import 'tailwindcss';
+
+@theme {
+  --color-ink: #0d0c0b;
+  --color-coal: #151311;
+  --color-smoke: #1f1c19;
+  --color-line: #2c2824;
+  --color-bone: #efe8dc;
+  --color-ash: #a39a8e;
+  --color-dust: #6f675d;
+  --color-brass: #c9a36a;
+  --color-brass-deep: #9c7a45;
+  --color-blood: #b23a2e;
+  --color-pole: #2f4b7c;
+  --color-moss: #6f8f5b;
+
+  --font-display: 'Big Shoulders Display', 'Arial Narrow', sans-serif;
+  --font-sans: 'Manrope Variable', system-ui, sans-serif;
+  --font-serif: 'Instrument Serif', Georgia, serif;
+  --font-mono: 'JetBrains Mono Variable', ui-monospace, monospace;
+
+  --animate-pole: pole 1.6s linear infinite;
+  --animate-rise: rise 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  --animate-print: print 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+
+  @keyframes pole {
+    to {
+      background-position: 0 28px;
+    }
+  }
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+  }
+  @keyframes print {
+    from {
+      clip-path: inset(0 0 100% 0);
+      transform: translateY(-16px);
+    }
+    to {
+      clip-path: inset(0 0 0 0);
+    }
+  }
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    @apply bg-ink font-sans text-bone antialiased;
+    background-image:
+      radial-gradient(1200px 600px at 85% -10%, rgb(201 163 106 / 0.07), transparent 60%),
+      radial-gradient(900px 500px at -10% 110%, rgb(178 58 46 / 0.05), transparent 60%);
+    background-attachment: fixed;
+  }
+  ::selection {
+    @apply bg-brass text-ink;
+  }
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-brass;
+  }
+}
+
+@layer components {
+  /* Rayas del poste de barbero: firma visual de la marca */
+  .pole {
+    background-image: repeating-linear-gradient(
+      -45deg,
+      var(--color-bone) 0 5px,
+      var(--color-blood) 5px 10px,
+      var(--color-bone) 10px 14px,
+      var(--color-pole) 14px 19px
+    );
+    background-size: 100% 28px;
+  }
+  .grain::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.05;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  /* Línea de puntos de carta de precios */
+  .leader {
+    flex: 1;
+    min-width: 1.5rem;
+    border-bottom: 2px dotted var(--color-line);
+    transform: translateY(-0.35em);
+  }
+  /* Borde perforado del ticket */
+  .perforated {
+    --r: 7px;
+    mask:
+      radial-gradient(var(--r) at var(--r) 50%, #0000 98%, #000) calc(-1 * var(--r)) 0 / 100% 100% no-repeat,
+      linear-gradient(#000 0 0);
+  }
+  .ticket-edge {
+    background: radial-gradient(circle at 8px 0, transparent 7px, var(--color-bone) 7.5px) 0 0 / 16px 100% repeat-x;
+    height: 8px;
+  }
+  .label {
+    @apply font-mono text-[0.68rem] tracking-[0.18em] text-ash uppercase;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@utility text-stroke {
+  color: transparent;
+  -webkit-text-stroke: 2px var(--color-bone);
+}

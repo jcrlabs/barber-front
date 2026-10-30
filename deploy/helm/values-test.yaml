@@ -1,0 +1,11 @@
+replicaCount: 1
+
+image:
+  tag: develop-0000000
+  pullPolicy: Always
+
+ingress:
+  host: barber-test.jcrlabs.net
+
+hpa:
+  enabled: false
