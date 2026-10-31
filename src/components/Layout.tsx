@@ -234,6 +234,20 @@ function Page() {
   )
 }
 
+/** Aviso fijo mientras la sesión use una contraseña débil (p.ej. admin/admin). */
+function WeakPasswordBanner() {
+  const weak = useAuth((s) => s.weakPassword)
+  if (!weak) return null
+  return (
+    <div role="alert" className="bg-blood px-5 py-2.5 text-center text-sm font-semibold text-bone">
+      Tu contraseña es muy débil y cualquiera podría adivinarla.{' '}
+      <Link to="/perfil" className="underline underline-offset-2">
+        Cámbiala ahora
+      </Link>
+    </div>
+  )
+}
+
 export function Layout() {
   return (
     <div className="flex min-h-dvh flex-col">
@@ -243,6 +257,7 @@ export function Layout() {
       >
         Saltar al contenido
       </a>
+      <WeakPasswordBanner />
       <Header />
       <main id="main" className="flex-1">
         <Page />

@@ -18,6 +18,8 @@ export interface Session {
   access_token: string
   expires_at: string
   user: User
+  /** Solo en el login: la contraseña usada no cumple la política (p.ej. la cuenta admin inicial). */
+  weak_password?: boolean
 }
 
 export interface Service {
