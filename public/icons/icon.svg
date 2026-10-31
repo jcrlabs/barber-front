@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <radialGradient id="g" cx="50%" cy="38%" r="70%"><stop offset="0" stop-color="#2a2016"/><stop offset="1" stop-color="#0d0c0b"/></radialGradient>
+    <linearGradient id="brass" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#e2c48f"/><stop offset="1" stop-color="#9c7a45"/></linearGradient>
+    <clipPath id="tube"><rect x="206" y="128" width="100" height="256"/></clipPath>
+    <pattern id="stripes" width="40" height="40" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)">
+      <rect width="40" height="40" fill="#efe8dc"/><rect width="40" height="9" fill="#b23a2e"/><rect y="20" width="40" height="9" fill="#2f4b7c"/>
+    </pattern>
+    <linearGradient id="shade" x1="0" x2="1"><stop offset="0" stop-color="#000" stop-opacity=".45"/><stop offset=".45" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".55"/></linearGradient>
+  </defs>
+  <rect width="512" height="512" fill="url(#g)"/>
+  <g clip-path="url(#tube)"><rect x="150" y="100" width="220" height="320" fill="url(#stripes)"/><rect x="206" y="128" width="100" height="256" fill="url(#shade)"/></g>
+  <rect x="196" y="96" width="120" height="40" rx="20" fill="url(#brass)"/>
+  <rect x="196" y="376" width="120" height="40" rx="20" fill="url(#brass)"/>
+  <circle cx="256" cy="88" r="14" fill="url(#brass)"/>
+</svg>

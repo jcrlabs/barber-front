@@ -219,7 +219,7 @@ function TicketCard({ service, barber, slot, code, printed }: { service?: Servic
       <div className="ticket-edge rotate-180" />
       <div className="bg-bone px-6 pt-5 pb-6">
         <div className="flex items-center justify-between border-b-2 border-dashed border-ink/15 pb-4">
-          <span className="font-display text-2xl font-black tracking-[0.12em] uppercase">Navaja.</span>
+          <span className="font-display text-2xl font-black tracking-[0.12em] uppercase">Edgar Barber</span>
           <span className="font-mono text-xs text-ink/50">{code ? `#${code}` : 'TICKET'}</span>
         </div>
         <div className="divide-y divide-ink/10 pt-2 text-sm">

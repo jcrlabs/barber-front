@@ -1,5 +1,5 @@
 import { clsx } from 'clsx'
-import { CalendarDays, LayoutDashboard, LogOut, Menu, Scissors, User as UserIcon, X } from 'lucide-react'
+import { BookOpen, CalendarDays, House, LayoutDashboard, LogOut, Menu, Scissors, User as UserIcon, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router'
 import { api } from '../lib/api'
@@ -8,10 +8,11 @@ import { Monogram, Pole } from './ui'
 
 export function Logo() {
   return (
-    <Link to="/" className="group flex items-center gap-3" aria-label="Navaja, inicio">
+    <Link to="/" className="group flex items-center gap-3" aria-label="Edgar Barber, inicio">
       <Pole className="h-8 w-2.5 ring-1 ring-brass/60" />
-      <span className="font-display text-2xl leading-none font-extrabold tracking-[0.12em] uppercase">
-        Navaja<span className="text-brass">.</span>
+      <span className="flex items-baseline gap-1.5 leading-none">
+        <span className="font-display text-2xl font-extrabold tracking-[0.12em] uppercase">Edgar</span>
+        <em className="font-serif text-xl text-brass">barber</em>
       </span>
     </Link>
   )
@@ -56,7 +57,7 @@ function Header() {
     clsx('flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-colors', isActive ? 'bg-smoke text-brass' : 'text-ash hover:text-bone')
 
   return (
-    <header className={clsx('sticky top-0 z-40 transition-all', scrolled ? 'border-b border-line bg-ink/85 backdrop-blur-xl' : 'border-b border-transparent')}>
+    <header className={clsx('pt-safe sticky top-0 z-40 transition-all', scrolled ? 'border-b border-line bg-ink/85 backdrop-blur-xl' : 'border-b border-transparent')}>
       <div className="mx-auto flex h-18 max-w-7xl items-center justify-between gap-4 px-5">
         <Logo />
         <nav className="hidden items-center gap-1 md:flex" aria-label="Principal">
@@ -125,13 +126,55 @@ function Header() {
   )
 }
 
+/** Barra inferior tipo app en móvil: navegación con el pulgar y botón central de reserva. */
+function TabBar() {
+  const { user } = useAuth()
+  const staff = user?.role === 'barber' || user?.role === 'admin'
+  const tab = ({ isActive }: { isActive: boolean }) =>
+    clsx('flex flex-1 flex-col items-center gap-1 pt-2.5 pb-2 font-mono text-[0.6rem] tracking-wider uppercase transition-colors', isActive ? 'text-brass' : 'text-dust')
+  return (
+    <nav aria-label="Navegación móvil" className="pb-safe fixed inset-x-0 bottom-0 z-40 border-t border-line bg-ink/90 backdrop-blur-xl md:hidden">
+      <div className="mx-auto flex max-w-md items-end">
+        <NavLink to="/" end className={tab}>
+          <House className="size-5" /> Inicio
+        </NavLink>
+        <NavLink to={staff ? '/agenda' : '/mis-citas'} className={tab}>
+          {staff ? <Scissors className="size-5" /> : <CalendarDays className="size-5" />} {staff ? 'Agenda' : 'Citas'}
+        </NavLink>
+        <NavLink to="/reservar" className="-mt-5 flex flex-1 flex-col items-center gap-1 pb-2" aria-label="Reservar">
+          {({ isActive }) => (
+            <>
+              <span className={clsx('grid size-14 place-items-center overflow-hidden rounded-full ring-4 ring-ink transition-transform', isActive && 'scale-105')}>
+                <span className="pole animate-pole size-full" />
+              </span>
+              <span className={clsx('font-mono text-[0.6rem] tracking-wider uppercase', isActive ? 'text-brass' : 'text-bone')}>Reservar</span>
+            </>
+          )}
+        </NavLink>
+        {user?.role === 'admin' ? (
+          <NavLink to="/admin" className={tab}>
+            <LayoutDashboard className="size-5" /> Admin
+          </NavLink>
+        ) : (
+          <Link to="/#carta" className={tab({ isActive: false })}>
+            <BookOpen className="size-5" /> Carta
+          </Link>
+        )}
+        <NavLink to={user ? '/perfil' : '/login'} className={tab}>
+          <UserIcon className="size-5" /> {user ? 'Perfil' : 'Entrar'}
+        </NavLink>
+      </div>
+    </nav>
+  )
+}
+
 function Footer() {
   return (
-    <footer className="mt-24 border-t border-line">
+    <footer className="mt-24 border-t border-line pb-24 md:pb-0">
       <div className="mx-auto grid max-w-7xl gap-10 px-5 py-14 sm:grid-cols-3">
         <div className="space-y-4">
           <Logo />
-          <p className="max-w-xs text-sm text-ash">Barbería de autor. Navaja, tijera y conversación desde el primer día.</p>
+          <p className="max-w-xs text-sm text-ash">Barbería de autor. Navaja, tijera y conversación desde el primer día, de la mano de Edgar.</p>
         </div>
         <div className="space-y-2 text-sm">
           <p className="label">Visítanos</p>
@@ -162,6 +205,7 @@ export function Layout() {
         <Outlet />
       </main>
       <Footer />
+      <TabBar />
     </div>
   )
 }

@@ -1,6 +1,6 @@
-# barber-front — Navaja
+# barber-front — Edgar Barber
 
-Web de reservas de la barbería **Navaja**: landing con carta y equipo, reserva en 4 pasos con ticket en vivo, área de cliente, agenda de barberos y panel de administración.
+Web de reservas de la barbería **Edgar Barber**: landing con carta y equipo, reserva en 4 pasos con ticket en vivo, área de cliente, agenda de barberos y panel de administración.
 
 **Stack:** React 19 · Vite · TypeScript · Tailwind v4 · TanStack Query · Zustand · React Hook Form + Zod · nginx (unprivileged) · Helm · ArgoCD
 
@@ -31,5 +31,5 @@ npm run dev        # http://localhost:5173, proxya /api a http://localhost:8080 
 
 ## Despliegue
 
-- `develop` → `ghcr.io/jcrlabs/barber-front:develop-<sha>` → `barber-test.jcrlabs.net`
-- tag `vX.Y.Z` → `ghcr.io/jcrlabs/barber-front:vX.Y.Z` → `barber.jcrlabs.net`
+- `develop` → `ghcr.io/jcrlabs/barber-front:develop-<sha>` → `edgarbarber-test.jcrlabs.net`
+- tag `vX.Y.Z` → `ghcr.io/jcrlabs/barber-front:vX.Y.Z` → `edgarbarber.jcrlabs.net`

@@ -1,6 +1,6 @@
 # CLAUDE.md — barber-front
 
-Front de reservas de la barbería Navaja (React 19 + Vite + TypeScript + Tailwind v4).
+Front de reservas de la barbería Edgar Barber (React 19 + Vite + TypeScript + Tailwind v4).
 
 ## CI local
 

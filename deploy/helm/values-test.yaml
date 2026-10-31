@@ -5,7 +5,7 @@ image:
   pullPolicy: Always
 
 ingress:
-  host: barber-test.jcrlabs.net
+  host: edgarbarber-test.jcrlabs.net
 
 hpa:
   enabled: false

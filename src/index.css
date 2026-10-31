@@ -59,6 +59,7 @@
   }
   body {
     @apply bg-ink font-sans text-bone antialiased;
+    overscroll-behavior-y: none;
     background-image:
       radial-gradient(1200px 600px at 85% -10%, rgb(201 163 106 / 0.07), transparent 60%),
       radial-gradient(900px 500px at -10% 110%, rgb(178 58 46 / 0.05), transparent 60%);
@@ -128,4 +129,11 @@
 @utility text-stroke {
   color: transparent;
   -webkit-text-stroke: 2px var(--color-bone);
+}
+
+@utility pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
 }

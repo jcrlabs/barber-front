@@ -1,4 +1,5 @@
 import { rememberNext } from '../lib/nav'
+import { isNativeApp } from '../lib/platform'
 import { useProviders } from '../lib/queries'
 
 const icons: Record<string, React.ReactNode> = {
@@ -19,7 +20,8 @@ const icons: Record<string, React.ReactNode> = {
 
 export function SocialButtons({ next }: { next: string }) {
   const { data } = useProviders()
-  const providers = data?.providers ?? []
+  // Google no permite OAuth dentro de WebViews: en la app nativa se ofrece email (y GitHub).
+  const providers = (data?.providers ?? []).filter((p) => !(isNativeApp() && p.name === 'google'))
   if (!providers.length) return null
   return (
     <div className="space-y-3">

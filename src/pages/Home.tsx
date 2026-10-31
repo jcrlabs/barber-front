@@ -1,5 +1,7 @@
 import { ArrowRight, CalendarCheck, Scissors, Sparkles, Timer } from 'lucide-react'
-import { Link } from 'react-router'
+import { useEffect } from 'react'
+import { Link, useLocation } from 'react-router'
+import { InstallCard } from '../components/InstallCard'
 import { Monogram, Pole, SectionTitle, Skeleton } from '../components/ui'
 import { duration, minutesToHHMM, money, WEEKDAYS } from '../lib/format'
 import { useBarbers, useServices } from '../lib/queries'
@@ -184,8 +186,14 @@ function Ritual() {
 }
 
 export default function Home() {
+  const { hash } = useLocation()
+  // Enlaces a secciones (/#carta, /#equipo) desde otras pantallas.
+  useEffect(() => {
+    if (hash) document.getElementById(hash.slice(1))?.scrollIntoView({ behavior: 'smooth' })
+  }, [hash])
   return (
     <>
+      <InstallCard />
       <Hero />
       <Carta />
       <Equipo />

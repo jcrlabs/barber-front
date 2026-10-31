@@ -30,7 +30,7 @@ function AuthShell({ title, accent, children, footer }: { title: string; accent:
           <Logo />
           <blockquote className="space-y-4">
             <p className="font-serif text-4xl leading-tight italic">“Un buen corte no se nota. Se nota cuando no lo llevas.”</p>
-            <footer className="label">— Marco Ferri, master barber</footer>
+            <footer className="label">— Edgar, fundador</footer>
           </blockquote>
         </div>
       </div>
