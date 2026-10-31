@@ -304,7 +304,7 @@ export default function Home() {
       <Hero />
       <Marquee
         className="border-y border-line bg-coal py-4 font-display text-3xl font-black tracking-wide text-ash uppercase"
-        items={['Corte con Edgar', '30 minutos', 'Reserva online', 'Sin llamadas', 'Avisos al móvil']}
+        items={['Reserva online', 'Avisos al móvil', 'Sin llamadas']}
       />
       <Week />
       <Carta />

@@ -27,11 +27,12 @@ export function Reveal({ children, className, delay = 0 }: { children: ReactNode
   )
 }
 
-/** Cinta de texto en bucle infinito. */
+/** Cinta de texto en bucle infinito. Repite los textos para cubrir pantallas anchas aunque sean pocos. */
 export function Marquee({ items, className }: { items: string[]; className?: string }) {
+  const list = Array.from({ length: Math.max(1, Math.ceil(12 / items.length)) }, () => items).flat()
   const row = (hidden?: boolean) => (
     <div className="flex shrink-0 items-center gap-10 pr-10" aria-hidden={hidden}>
-      {items.map((t, i) => (
+      {list.map((t, i) => (
         <span key={i} className="flex items-center gap-10">
           {t}
           <span className="size-2 rotate-45 bg-brass" />
@@ -41,7 +42,8 @@ export function Marquee({ items, className }: { items: string[]; className?: str
   )
   return (
     <div className={clsx('flex overflow-hidden select-none', className)}>
-      <div className="animate-marquee flex">
+      {/* Duración proporcional a la longitud: misma velocidad tenga los textos que tenga. */}
+      <div className="animate-marquee flex" style={{ animationDuration: `${list.length * 5.6}s` }}>
         {row()}
         {row(true)}
       </div>
