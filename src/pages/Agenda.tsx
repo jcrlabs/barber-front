@@ -5,7 +5,7 @@ import { toast } from 'sonner'
 import { EmptyState, Select, Skeleton, StatusBadge } from '../components/ui'
 import { errorMessage } from '../lib/api'
 import { useNow } from '../lib/useNow'
-import { longDate, money, statusLabel, time, todayInShop } from '../lib/format'
+import { longDate, statusLabel, time, todayInShop } from '../lib/format'
 import { useAdminBarbers, useAgenda, useSetStatus } from '../lib/queries'
 import { dialable, whatsappLink } from '../lib/phone'
 
@@ -33,7 +33,6 @@ export default function Agenda() {
   }
 
   const active = (data ?? []).filter((a) => a.status !== 'cancelled')
-  const revenue = active.reduce((s, a) => s + a.price_cents, 0)
 
   return (
     <div className="mx-auto max-w-5xl space-y-8 px-5 py-12">
@@ -69,7 +68,7 @@ export default function Agenda() {
           </div>
         )}
         <span className="label">
-          {active.length} citas · {money(revenue)}
+          {active.length} {active.length === 1 ? 'cita' : 'citas'}
         </span>
       </div>
 
@@ -106,7 +105,7 @@ export default function Agenda() {
                     <StatusBadge status={a.status}>{statusLabel[a.status]}</StatusBadge>
                   </div>
                   <p className="text-sm text-ash">
-                    {a.service_name} · {money(a.price_cents)} {(barbers.data?.length ?? 0) > 1 && `· ${a.barber_name}`}
+                    {a.service_name} {(barbers.data?.length ?? 0) > 1 && `· ${a.barber_name}`}
                   </p>
                   {a.notes && <p className="mt-2 rounded-lg bg-smoke px-3 py-2 font-serif text-ash italic">“{a.notes}”</p>}
                 </div>

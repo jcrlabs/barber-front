@@ -6,7 +6,7 @@ import { toast } from 'sonner'
 import { z } from 'zod'
 import { Button, Field, Input, Modal, Skeleton, Textarea } from '../../components/ui'
 import { api, errorMessage } from '../../lib/api'
-import { duration, money } from '../../lib/format'
+import { duration } from '../../lib/format'
 import { useAdminMutation, useAdminServices } from '../../lib/queries'
 import type { Service } from '../../lib/types'
 
@@ -14,7 +14,6 @@ const schema = z.object({
   name: z.string().trim().min(2).max(80),
   description: z.string().max(500),
   duration_min: z.coerce.number<string | number>().int().min(5).max(480),
-  price: z.coerce.number<string | number>().min(0).max(10000),
   sort_order: z.coerce.number<string | number>().int().min(0).max(1000),
   active: z.boolean(),
 })
@@ -23,12 +22,17 @@ type FormValues = z.output<typeof schema>
 function ServiceForm({ initial, onDone }: { initial?: Service; onDone: () => void }) {
   const form = useForm<z.input<typeof schema>, unknown, FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: initial
-      ? { ...initial, price: initial.price_cents / 100 }
-      : { name: '', description: '', duration_min: 30, price: 15, sort_order: 0, active: true },
+    defaultValues: initial ? initial : { name: '', description: '', duration_min: 30, sort_order: 0, active: true },
   })
   const save = useAdminMutation((v: FormValues) => {
-    const body = { name: v.name, description: v.description, duration_min: v.duration_min, price_cents: Math.round(v.price * 100), sort_order: v.sort_order, active: v.active }
+    const body = {
+      name: v.name,
+      description: v.description,
+      duration_min: v.duration_min,
+      price_cents: initial?.price_cents ?? 0,
+      sort_order: v.sort_order,
+      active: v.active,
+    }
     return initial ? api(`/admin/services/${initial.id}`, { method: 'PUT', json: body }) : api('/admin/services', { method: 'POST', json: body })
   })
   const e = form.formState.errors
@@ -52,12 +56,9 @@ function ServiceForm({ initial, onDone }: { initial?: Service; onDone: () => voi
       <Field label="Descripción">
         <Textarea {...form.register('description')} />
       </Field>
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 gap-3">
         <Field label="Minutos" error={e.duration_min && '5–480'}>
           <Input type="number" step={5} {...form.register('duration_min')} />
-        </Field>
-        <Field label="Precio €" error={e.price && 'No válido'}>
-          <Input type="number" step="0.5" {...form.register('price')} />
         </Field>
         <Field label="Orden">
           <Input type="number" {...form.register('sort_order')} />
@@ -101,14 +102,17 @@ export function AdminServices() {
               <p className="text-sm text-ash">{s.description}</p>
             </div>
             <span className="font-mono text-sm text-dust">{duration(s.duration_min)}</span>
-            <span className="w-20 text-right font-mono text-brass">{money(s.price_cents)}</span>
             <div className="flex gap-1">
               <button onClick={() => setEditing(s)} className="rounded-full p-2 text-ash hover:bg-smoke hover:text-bone" aria-label={`Editar ${s.name}`}>
                 <Pencil className="size-4" />
               </button>
               <button
                 onClick={() => {
-                  if (confirm(`¿Eliminar "${s.name}"? Si tiene citas se ocultará.`)) del.mutateAsync(s.id).then(() => toast.success('Eliminado'), (e) => toast.error(errorMessage(e)))
+                  if (confirm(`¿Eliminar "${s.name}"? Si tiene citas se ocultará.`))
+                    del.mutateAsync(s.id).then(
+                      () => toast.success('Eliminado'),
+                      (e) => toast.error(errorMessage(e)),
+                    )
                 }}
                 className="rounded-full p-2 text-ash hover:bg-blood/20 hover:text-[#e2786c]"
                 aria-label={`Eliminar ${s.name}`}

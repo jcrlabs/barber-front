@@ -5,7 +5,7 @@ import { toast } from 'sonner'
 import { Button, EmptyState, Modal, Skeleton, StatusBadge } from '../components/ui'
 import { errorMessage } from '../lib/api'
 import { useNow } from '../lib/useNow'
-import { dayParts, duration, longDate, money, statusLabel, time, ymdInShop } from '../lib/format'
+import { dayParts, duration, longDate, shortDate, statusLabel, time, ymdInShop } from '../lib/format'
 import { useCancel, useMeta, useMyAppointments } from '../lib/queries'
 import type { Appointment } from '../lib/types'
 
@@ -25,7 +25,7 @@ function Row({ a, onCancel, cancellable }: { a: Appointment; onCancel?: () => vo
           <StatusBadge status={a.status}>{statusLabel[a.status]}</StatusBadge>
         </div>
         <p className="text-sm text-ash">
-          <span className="font-mono text-bone">{time(a.starts_at)}</span> · {duration(mins)} · con {a.barber_name} · {money(a.price_cents)}
+          <span className="font-mono text-bone">{time(a.starts_at)}</span> · {duration(mins)} · con {a.barber_name}
         </p>
       </div>
       {onCancel && (
@@ -48,10 +48,7 @@ function countdown(ms: number) {
 function Summary({ list, now }: { list: Appointment[]; now: number }) {
   const next = list.filter((a) => a.status === 'confirmed' && new Date(a.starts_at).getTime() > now).sort((a, b) => a.starts_at.localeCompare(b.starts_at))[0]
   const done = list.filter((a) => a.status === 'completed')
-  const spent = done.reduce((s, a) => s + a.price_cents, 0)
-  const fav = Object.entries(done.reduce<Record<string, number>>((m, a) => ((m[a.service_name] = (m[a.service_name] ?? 0) + 1), m), {})).sort(
-    (a, b) => b[1] - a[1],
-  )[0]?.[0]
+  const last = done.sort((a, b) => b.starts_at.localeCompare(a.starts_at))[0]
   const upcoming = list.filter((a) => a.status === 'confirmed' && new Date(a.starts_at).getTime() > now).length
 
   return (
@@ -77,7 +74,7 @@ function Summary({ list, now }: { list: Appointment[]; now: number }) {
         {[
           { k: 'Pendientes', v: String(upcoming) },
           { k: 'Visitas', v: String(done.length) },
-          { k: fav ? 'Tu favorito' : 'Invertido', v: fav ?? money(spent) },
+          { k: 'Última visita', v: last ? shortDate(last.starts_at) : '—' },
         ].map((c) => (
           <div key={c.k} className="rounded-2xl border border-line bg-coal px-4 py-3">
             <dt className="label">{c.k}</dt>

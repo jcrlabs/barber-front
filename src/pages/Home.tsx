@@ -3,7 +3,7 @@ import { useEffect } from 'react'
 import { Link, useLocation } from 'react-router'
 import { InstallCard } from '../components/InstallCard'
 import { Monogram, Pole, SectionTitle, Skeleton } from '../components/ui'
-import { duration, minutesToHHMM, money, WEEKDAYS } from '../lib/format'
+import { duration, minutesToHHMM, WEEKDAYS } from '../lib/format'
 import { useBarbers, useServices } from '../lib/queries'
 import type { Barber } from '../lib/types'
 
@@ -29,7 +29,7 @@ function Hero() {
               Reservar mi cita <ArrowRight className="size-5 transition-transform group-hover:translate-x-1" />
             </Link>
             <a href="#carta" className="inline-flex h-14 items-center rounded-full px-6 font-semibold text-ash hover:text-bone">
-              Precio y horario
+              Ver horario
             </a>
           </div>
         </div>
@@ -58,7 +58,7 @@ function Carta() {
       <div className="grid gap-12 lg:grid-cols-[1fr_1.4fr]">
         <div className="space-y-6 lg:sticky lg:top-28 lg:self-start">
           <SectionTitle eyebrow="El servicio" title="Corte" accent="con Edgar" />
-          <p className="max-w-sm text-ash">Precio cerrado y citas de {services?.[0] ? duration(services[0].duration_min) : '30 min'}.</p>
+          <p className="max-w-sm text-ash">Citas de {services?.[0] ? duration(services[0].duration_min) : '30 min'}.</p>
         </div>
         <ol className="divide-y divide-line border-y border-line">
           {isLoading &&
@@ -74,11 +74,10 @@ function Carta() {
                   <span className="font-mono text-xs text-dust">{String(i + 1).padStart(2, '0')}</span>
                   <span className="font-display text-3xl font-bold uppercase transition-colors group-hover:text-brass">{s.name}</span>
                   <span className="leader" />
-                  <span className="font-mono text-xl text-brass">{money(s.price_cents)}</span>
+                  <span className="font-mono text-xl text-brass">{duration(s.duration_min)}</span>
                 </div>
                 <div className="flex items-center justify-between pl-9 text-sm text-ash">
                   <span>{s.description}</span>
-                  <span className="shrink-0 pl-4 font-mono text-xs">{duration(s.duration_min)}</span>
                 </div>
               </Link>
             </li>

@@ -5,7 +5,7 @@ import { Link, useLocation, useNavigate, useSearchParams } from 'react-router'
 import { toast } from 'sonner'
 import { Button, EmptyState, Field, Input, Monogram, Skeleton, Textarea } from '../components/ui'
 import { ApiError, errorMessage } from '../lib/api'
-import { dayParts, duration, hourOf, longDate, money, time } from '../lib/format'
+import { dayParts, duration, hourOf, longDate, time } from '../lib/format'
 import { useBarbers, useBook, useDays, useServices, useSlots } from '../lib/queries'
 import type { Appointment, Barber, Service, Slot } from '../lib/types'
 import { useAuth } from '../store/auth'
@@ -100,8 +100,7 @@ function ServiceStep({ services, value, onPick }: { services?: Service[]; value:
             <span className="block text-sm text-ash">{s.description}</span>
           </span>
           <span className="text-right">
-            <span className="block font-mono text-lg text-brass">{money(s.price_cents)}</span>
-            <span className="block font-mono text-xs text-dust">{duration(s.duration_min)}</span>
+            <span className="block font-mono text-lg text-brass">{duration(s.duration_min)}</span>
           </span>
         </button>
       ))}
@@ -289,10 +288,7 @@ function TicketCard({
           {row('Hora', slot ? <span className="font-mono">{time(slot)}</span> : undefined)}
           {row('Duración', service ? duration(service.duration_min) : undefined)}
         </div>
-        <div className="mt-4 flex items-end justify-between border-t-2 border-ink pt-4">
-          <span className="font-mono text-[0.65rem] tracking-[0.16em] text-ink/50 uppercase">Total</span>
-          <span className="font-display text-4xl leading-none font-black">{service ? money(service.price_cents) : '—'}</span>
-        </div>
+        <div className="mt-4 border-t-2 border-ink" />
         {/* Código de barras decorativo */}
         <div className="mt-5 flex h-10 items-end gap-[2px] opacity-80" aria-hidden>
           {Array.from({ length: 46 }, (_, i) => (

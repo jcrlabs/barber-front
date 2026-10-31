@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Button, Input, Select, Skeleton, StatusBadge } from '../../components/ui'
-import { money, shortDate, statusLabel, time, todayInShop } from '../../lib/format'
+import { shortDate, statusLabel, time, todayInShop } from '../../lib/format'
+import { dialable } from '../../lib/phone'
 import { useAdminAppointments, useAdminBarbers } from '../../lib/queries'
 
 export function AdminAppointments() {
@@ -36,7 +37,7 @@ export function AdminAppointments() {
         <table className="w-full min-w-[720px] text-left text-sm">
           <thead className="bg-coal">
             <tr className="label">
-              {['Fecha', 'Cliente', 'Servicio', 'Barbero', 'Importe', 'Estado'].map((h) => (
+              {['Fecha', 'Cliente', 'Teléfono', 'Servicio', 'Estado'].map((h) => (
                 <th key={h} className="px-5 py-4 font-normal">
                   {h}
                 </th>
@@ -46,7 +47,7 @@ export function AdminAppointments() {
           <tbody className="divide-y divide-line">
             {isLoading && (
               <tr>
-                <td colSpan={6} className="p-5">
+                <td colSpan={5} className="p-5">
                   <Skeleton className="h-10" />
                 </td>
               </tr>
@@ -60,9 +61,16 @@ export function AdminAppointments() {
                   <p className="font-semibold">{a.client_name}</p>
                   <p className="text-xs text-dust">{a.client_email}</p>
                 </td>
+                <td className="px-5 py-4 font-mono">
+                  {a.client_phone ? (
+                    <a href={`tel:${dialable(a.client_phone)}`} className="text-brass hover:text-bone">
+                      {a.client_phone}
+                    </a>
+                  ) : (
+                    '—'
+                  )}
+                </td>
                 <td className="px-5 py-4">{a.service_name}</td>
-                <td className="px-5 py-4">{a.barber_name}</td>
-                <td className="px-5 py-4 font-mono">{money(a.price_cents)}</td>
                 <td className="px-5 py-4">
                   <StatusBadge status={a.status}>{statusLabel[a.status]}</StatusBadge>
                 </td>
