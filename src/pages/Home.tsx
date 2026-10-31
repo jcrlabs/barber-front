@@ -15,7 +15,8 @@ function useAvailability() {
   const barbers = useBarbers()
   const serviceId = services.data?.[0]?.id ?? null
   const barberId = barbers.data?.length === 1 ? barbers.data[0]!.id : null
-  const days = useDays(serviceId, barberId)
+  // Un mes vista (máximo de la API): así la tira tiene días aunque se abra pocos días a la semana.
+  const days = useDays(serviceId, barberId, 31)
   const firstFree = days.data?.find((d) => d.free > 0)
   const slots = useSlots(serviceId, barberId, firstFree?.date ?? null)
   const next = slots.data?.[0]
@@ -123,7 +124,8 @@ function Hero() {
 /** Disponibilidad de los próximos días: cada barra se llena según los huecos libres de ese día. */
 function Week() {
   const a = useAvailability()
-  const days = (a.days ?? []).slice(0, 14)
+  // Solo días con horas reservables; los cerrados no se muestran.
+  const days = (a.days ?? []).filter((d) => d.total > 0).slice(0, 14)
   if (!a.loading && days.length === 0) return null
   return (
     <section className="mx-auto max-w-7xl px-5 pt-20">
@@ -163,7 +165,7 @@ function Week() {
                   style={{ width: `${pct}%`, animationDelay: `${300 + i * 40}ms` }}
                 />
               </span>
-              <span className="font-mono text-[0.65rem] text-ash">{d.open ? (d.free ? `${d.free} libres` : 'Lleno') : 'Cerrado'}</span>
+              <span className="font-mono text-[0.65rem] text-ash">{d.free ? `${d.free} libres` : 'Lleno'}</span>
             </Link>
           )
         })}

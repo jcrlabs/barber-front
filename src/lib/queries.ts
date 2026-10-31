@@ -7,7 +7,7 @@ export const qk = {
   services: ['services'] as const,
   barbers: ['barbers'] as const,
   providers: ['providers'] as const,
-  days: (s: string, b: string | null) => ['days', s, b] as const,
+  days: (s: string, b: string | null, n: number) => ['days', s, b, n] as const,
   slots: (s: string, b: string | null, d: string) => ['slots', s, b, d] as const,
   mine: ['appointments', 'mine'] as const,
   agenda: (from: string, to: string, b?: string) => ['agenda', from, to, b] as const,
@@ -36,10 +36,10 @@ export const useProviders = () =>
     staleTime: Infinity,
   })
 
-export const useDays = (serviceId: string | null, barberId: string | null) =>
+export const useDays = (serviceId: string | null, barberId: string | null, days = 21) =>
   useQuery({
-    queryKey: qk.days(serviceId ?? '', barberId),
-    queryFn: () => api<DaySummary[]>(`/availability/days?${qs({ service_id: serviceId, barber_id: barberId, days: 21 })}`),
+    queryKey: qk.days(serviceId ?? '', barberId, days),
+    queryFn: () => api<DaySummary[]>(`/availability/days?${qs({ service_id: serviceId, barber_id: barberId, days })}`),
     enabled: !!serviceId,
   })
 
