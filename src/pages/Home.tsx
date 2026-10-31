@@ -1,5 +1,5 @@
 import { clsx } from 'clsx'
-import { ArrowRight, CalendarCheck, Phone, Scissors, Zap } from 'lucide-react'
+import { ArrowRight, CalendarCheck, Phone, Scissors } from 'lucide-react'
 import { useEffect } from 'react'
 import { Link, useLocation } from 'react-router'
 import { InstallCard } from '../components/InstallCard'
@@ -132,9 +132,6 @@ function Week() {
       <Reveal>
         <div className="flex flex-wrap items-end justify-between gap-4">
           <SectionTitle eyebrow="Disponibilidad" title="Próximos" accent="días" />
-          <p className="flex items-center gap-2 text-sm text-ash">
-            <Zap className="size-4 text-brass" /> Se actualiza en tiempo real
-          </p>
         </div>
       </Reveal>
       <div className="-mx-5 mt-8 flex snap-x gap-3 overflow-x-auto px-5 pb-2">
