@@ -56,6 +56,7 @@ export interface Slot {
 export interface DaySummary {
   date: string
   free: number
+  total: number
   open: boolean
 }
 

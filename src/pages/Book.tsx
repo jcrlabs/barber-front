@@ -161,7 +161,6 @@ function WhenStep({
 }) {
   const days = useDays(serviceId, barberId)
   const slots = useSlots(serviceId, barberId, date)
-  const maxFree = Math.max(1, ...(days.data ?? []).map((d) => d.free))
 
   // Selecciona automáticamente el primer día con huecos.
   useEffect(() => {
@@ -201,9 +200,9 @@ function WhenStep({
                 <span className="font-mono text-[0.65rem] tracking-widest uppercase">{p.weekday}</span>
                 <span className="font-display text-3xl leading-none font-extrabold">{p.day}</span>
                 <span className="font-mono text-[0.65rem] uppercase opacity-70">{p.month}</span>
-                {/* Medidor de disponibilidad: cuanto más lleno, más libre */}
+                {/* Medidor de disponibilidad del propio día: lleno = todos sus huecos libres */}
                 <span className={clsx('mt-1 h-1 w-full overflow-hidden rounded-full', active ? 'bg-ink/20' : 'bg-smoke')}>
-                  <span className={clsx('block h-full rounded-full', active ? 'bg-ink' : 'bg-brass')} style={{ width: `${(d.free / maxFree) * 100}%` }} />
+                  <span className={clsx('block h-full rounded-full', active ? 'bg-ink' : 'bg-brass')} style={{ width: `${d.total ? (d.free / d.total) * 100 : 0}%` }} />
                 </span>
                 {!d.open && <span className="font-mono text-[0.6rem]">cerrado</span>}
               </button>
