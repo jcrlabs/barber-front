@@ -50,9 +50,6 @@ function NextSlot() {
       to={href}
       className="group animate-float relative block w-72 rotate-[-3deg] rounded-3xl bg-bone p-6 text-ink shadow-[0_30px_80px_-20px_rgb(0_0_0/.8)] transition-transform hover:rotate-0"
     >
-      <span className="absolute -top-3 left-6 flex items-center gap-1.5 rounded-full bg-ink px-3 py-1 font-mono text-[0.6rem] tracking-[0.18em] text-brass uppercase">
-        <span className="size-1.5 animate-pulse rounded-full bg-[#9dc086]" /> En directo
-      </span>
       <p className="font-mono text-[0.65rem] tracking-[0.18em] text-dust uppercase">Próximo hueco libre</p>
       {a.loading ? (
         <div className="mt-3 h-16 animate-pulse rounded-xl bg-ink/10" />
