@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router'
 import { api } from '../lib/api'
 import { useAuth } from '../store/auth'
+import { AdminAlerts } from './AdminAlerts'
 import { Monogram, Pole } from './ui'
 
 export function Logo() {
@@ -49,15 +50,28 @@ function Header() {
 
   const links = [
     user && { to: '/mis-citas', label: 'Mis citas', icon: CalendarDays },
-    (user?.role === 'barber' || user?.role === 'admin') && { to: '/agenda', label: 'Agenda', icon: Scissors },
-    user?.role === 'admin' && { to: '/admin', label: 'Admin', icon: LayoutDashboard },
+    user?.role === 'admin' && {
+      to: '/agenda',
+      label: 'Agenda',
+      icon: Scissors,
+    },
+    user?.role === 'admin' && {
+      to: '/admin',
+      label: 'Admin',
+      icon: LayoutDashboard,
+    },
   ].filter(Boolean) as { to: string; label: string; icon: typeof Scissors }[]
 
   const navCls = ({ isActive }: { isActive: boolean }) =>
-    clsx('flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-colors', isActive ? 'bg-smoke text-brass' : 'text-ash hover:text-bone')
+    clsx(
+      'flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-colors',
+      isActive ? 'bg-smoke text-brass' : 'text-ash hover:text-bone',
+    )
 
   return (
-    <header className={clsx('pt-safe sticky top-0 z-40 transition-all', scrolled ? 'border-b border-line bg-ink/85 backdrop-blur-xl' : 'border-b border-transparent')}>
+    <header
+      className={clsx('pt-safe sticky top-0 z-40 transition-all', scrolled ? 'border-b border-line bg-ink/85 backdrop-blur-xl' : 'border-b border-transparent')}
+    >
       <div className="mx-auto flex h-18 max-w-7xl items-center justify-between gap-4 px-5">
         <Logo />
         <nav className="hidden items-center gap-1 md:flex" aria-label="Principal">
@@ -70,6 +84,7 @@ function Header() {
         <div className="hidden items-center gap-3 md:flex">
           {status === 'authed' && user ? (
             <>
+              {user.role === 'admin' && <AdminAlerts />}
               <Link to="/perfil" className="flex items-center gap-2 rounded-full py-1 pr-3 pl-1 text-sm text-ash hover:bg-smoke hover:text-bone">
                 <Monogram name={user.name} src={user.avatar_url} className="size-8 text-sm" />
                 {user.name.split(' ')[0]}
@@ -85,16 +100,16 @@ function Header() {
               </Link>
             )
           )}
-          <Link
-            to="/reservar"
-            className="rounded-full bg-brass px-5 py-2.5 text-sm font-bold text-ink transition-colors hover:bg-bone"
-          >
+          <Link to="/reservar" className="rounded-full bg-brass px-5 py-2.5 text-sm font-bold text-ink transition-colors hover:bg-bone">
             Reservar
           </Link>
         </div>
-        <button className="rounded-full p-2 md:hidden" onClick={() => setOpen((o) => !o)} aria-label="Menú" aria-expanded={open}>
-          {open ? <X /> : <Menu />}
-        </button>
+        <div className="flex items-center gap-1 md:hidden">
+          {user?.role === 'admin' && <AdminAlerts />}
+          <button className="rounded-full p-2" onClick={() => setOpen((o) => !o)} aria-label="Menú" aria-expanded={open}>
+            {open ? <X /> : <Menu />}
+          </button>
+        </div>
       </div>
       {open && (
         <div className="animate-rise space-y-1 border-t border-line bg-coal px-5 py-4 md:hidden">
@@ -129,9 +144,12 @@ function Header() {
 /** Barra inferior tipo app en móvil: navegación con el pulgar y botón central de reserva. */
 function TabBar() {
   const { user } = useAuth()
-  const staff = user?.role === 'barber' || user?.role === 'admin'
+  const staff = user?.role === 'admin'
   const tab = ({ isActive }: { isActive: boolean }) =>
-    clsx('flex flex-1 flex-col items-center gap-1 pt-2.5 pb-2 font-mono text-[0.6rem] tracking-wider uppercase transition-colors', isActive ? 'text-brass' : 'text-dust')
+    clsx(
+      'flex flex-1 flex-col items-center gap-1 pt-2.5 pb-2 font-mono text-[0.6rem] tracking-wider uppercase transition-colors',
+      isActive ? 'text-brass' : 'text-dust',
+    )
   return (
     <nav aria-label="Navegación móvil" className="pb-safe fixed inset-x-0 bottom-0 z-40 border-t border-line bg-ink/90 backdrop-blur-xl md:hidden">
       <div className="mx-auto flex max-w-md items-end">
@@ -144,7 +162,9 @@ function TabBar() {
         <NavLink to="/reservar" className="-mt-5 flex flex-1 flex-col items-center gap-1 pb-2" aria-label="Reservar">
           {({ isActive }) => (
             <>
-              <span className={clsx('grid size-14 place-items-center overflow-hidden rounded-full ring-4 ring-ink transition-transform', isActive && 'scale-105')}>
+              <span
+                className={clsx('grid size-14 place-items-center overflow-hidden rounded-full ring-4 ring-ink transition-transform', isActive && 'scale-105')}
+              >
                 <span className="pole animate-pole size-full" />
               </span>
               <span className={clsx('font-mono text-[0.6rem] tracking-wider uppercase', isActive ? 'text-brass' : 'text-bone')}>Reservar</span>
@@ -197,7 +217,10 @@ function Footer() {
 export function Layout() {
   return (
     <div className="flex min-h-dvh flex-col">
-      <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:rounded-full focus:bg-brass focus:px-4 focus:py-2 focus:text-ink">
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:rounded-full focus:bg-brass focus:px-4 focus:py-2 focus:text-ink"
+      >
         Saltar al contenido
       </a>
       <Header />

@@ -49,7 +49,7 @@ const router = createBrowserRouter([
       { path: '/auth/callback', element: <AuthCallback /> },
       { path: '/mis-citas', element: <RequireAuth>{lazyEl(<MyAppointments />)}</RequireAuth> },
       { path: '/perfil', element: <RequireAuth>{lazyEl(<Profile />)}</RequireAuth> },
-      { path: '/agenda', element: <RequireAuth roles={['barber', 'admin']}>{lazyEl(<Agenda />)}</RequireAuth> },
+      { path: '/agenda', element: <RequireAuth roles={['admin']}>{lazyEl(<Agenda />)}</RequireAuth> },
       { path: '/admin', element: <RequireAuth roles={['admin']}>{lazyEl(<Admin />)}</RequireAuth> },
       { path: '*', element: <NotFound /> },
     ],

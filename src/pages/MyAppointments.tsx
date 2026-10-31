@@ -1,4 +1,4 @@
-import { CalendarDays, Scissors } from 'lucide-react'
+import { CalendarClock, CalendarDays, Scissors } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router'
 import { toast } from 'sonner'
@@ -37,6 +37,58 @@ function Row({ a, onCancel, cancellable }: { a: Appointment; onCancel?: () => vo
   )
 }
 
+function countdown(ms: number) {
+  const h = Math.floor(ms / 3600_000)
+  if (h >= 48) return `en ${Math.round(h / 24)} días`
+  if (h >= 1) return `en ${h} h`
+  return `en ${Math.max(1, Math.round(ms / 60_000))} min`
+}
+
+/** Resumen del cliente: próxima cita destacada y números de su historial. */
+function Summary({ list, now }: { list: Appointment[]; now: number }) {
+  const next = list.filter((a) => a.status === 'confirmed' && new Date(a.starts_at).getTime() > now).sort((a, b) => a.starts_at.localeCompare(b.starts_at))[0]
+  const done = list.filter((a) => a.status === 'completed')
+  const spent = done.reduce((s, a) => s + a.price_cents, 0)
+  const fav = Object.entries(done.reduce<Record<string, number>>((m, a) => ((m[a.service_name] = (m[a.service_name] ?? 0) + 1), m), {})).sort(
+    (a, b) => b[1] - a[1],
+  )[0]?.[0]
+  const upcoming = list.filter((a) => a.status === 'confirmed' && new Date(a.starts_at).getTime() > now).length
+
+  return (
+    <section className="grid gap-4 md:grid-cols-[1.4fr_1fr]">
+      <div className="relative overflow-hidden rounded-3xl border border-brass/40 bg-coal p-6">
+        <p className="label flex items-center gap-2 text-brass">
+          <CalendarClock className="size-3.5" /> Tu próxima cita
+        </p>
+        {next ? (
+          <div className="mt-4 space-y-1">
+            <p className="font-display text-4xl leading-none font-black uppercase">{next.service_name}</p>
+            <p className="text-ash">
+              <span className="text-bone first-letter:uppercase">{longDate(next.starts_at)}</span> a las{' '}
+              <span className="font-mono text-bone">{time(next.starts_at)}</span> · con {next.barber_name}
+            </p>
+            <p className="pt-2 font-mono text-sm text-brass">{countdown(new Date(next.starts_at).getTime() - now)}</p>
+          </div>
+        ) : (
+          <p className="mt-4 text-ash">No tienes ninguna cita pendiente.</p>
+        )}
+      </div>
+      <dl className="grid grid-cols-3 gap-3 md:grid-cols-1 md:gap-2">
+        {[
+          { k: 'Pendientes', v: String(upcoming) },
+          { k: 'Visitas', v: String(done.length) },
+          { k: fav ? 'Tu favorito' : 'Invertido', v: fav ?? money(spent) },
+        ].map((c) => (
+          <div key={c.k} className="rounded-2xl border border-line bg-coal px-4 py-3">
+            <dt className="label">{c.k}</dt>
+            <dd className="mt-1 truncate font-display text-2xl font-black uppercase">{c.v}</dd>
+          </div>
+        ))}
+      </dl>
+    </section>
+  )
+}
+
 export default function MyAppointments() {
   const { data, isLoading } = useMyAppointments()
   const meta = useMeta()
@@ -71,6 +123,8 @@ export default function MyAppointments() {
       </div>
 
       {isLoading && <Skeleton className="h-28" />}
+
+      {!!data?.length && <Summary list={data} now={now} />}
 
       {!isLoading && !data?.length && (
         <EmptyState icon={<CalendarDays className="size-8" />} title="Aún sin citas">

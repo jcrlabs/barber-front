@@ -1,15 +1,17 @@
 import { clsx } from 'clsx'
-import { CalendarDays, LayoutDashboard, Scissors, Users, UsersRound } from 'lucide-react'
+import { CalendarClock, CalendarDays, LayoutDashboard, Scissors, Users, UsersRound } from 'lucide-react'
 import { useSearchParams } from 'react-router'
 import { AdminAppointments } from './AdminAppointments'
 import { AdminBarbers } from './AdminBarbers'
 import { AdminOverview } from './AdminOverview'
+import { AdminSchedule } from './AdminSchedule'
 import { AdminServices } from './AdminServices'
 import { AdminUsers } from './AdminUsers'
 
 const tabs = [
   { id: 'resumen', label: 'Resumen', icon: LayoutDashboard, el: AdminOverview },
   { id: 'citas', label: 'Citas', icon: CalendarDays, el: AdminAppointments },
+  { id: 'horario', label: 'Horario', icon: CalendarClock, el: AdminSchedule },
   { id: 'servicios', label: 'Servicios', icon: Scissors, el: AdminServices },
   { id: 'equipo', label: 'Equipo', icon: UsersRound, el: AdminBarbers },
   { id: 'usuarios', label: 'Usuarios', icon: Users, el: AdminUsers },

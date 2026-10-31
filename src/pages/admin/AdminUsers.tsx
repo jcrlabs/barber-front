@@ -8,7 +8,7 @@ import { useAdminMutation, useAdminUsers } from '../../lib/queries'
 import type { Role } from '../../lib/types'
 import { useAuth } from '../../store/auth'
 
-const roles: Record<Role, string> = { client: 'Cliente', barber: 'Barbero', admin: 'Admin' }
+const roles: Record<Role, string> = { client: 'Usuario', admin: 'Admin' }
 
 export function AdminUsers() {
   const me = useAuth((s) => s.user)
@@ -56,9 +56,10 @@ export function AdminUsers() {
                 disabled={u.id === me?.id}
                 aria-label={`Rol de ${u.name}`}
                 onChange={(e) =>
-                  setUserRole
-                    .mutateAsync({ id: u.id, role: e.target.value as Role })
-                    .then(() => toast.success('Rol actualizado'), (err) => toast.error(errorMessage(err)))
+                  setUserRole.mutateAsync({ id: u.id, role: e.target.value as Role }).then(
+                    () => toast.success('Rol actualizado'),
+                    (err) => toast.error(errorMessage(err)),
+                  )
                 }
               >
                 {Object.entries(roles).map(([k, v]) => (

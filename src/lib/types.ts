@@ -1,4 +1,4 @@
-export type Role = 'client' | 'barber' | 'admin'
+export type Role = 'client' | 'admin'
 export type AppointmentStatus = 'confirmed' | 'completed' | 'cancelled' | 'no_show'
 
 export interface User {
@@ -75,6 +75,24 @@ export interface Appointment {
   client_phone?: string
   barber_name: string
   service_name: string
+}
+
+export type OverrideKind = 'closed' | 'open' | 'block'
+
+export interface DayOverride {
+  id: string
+  barber_id: string | null
+  day: string
+  kind: OverrideKind
+  start_min: number | null
+  end_min: number | null
+  note: string
+}
+
+export interface Notifications {
+  items: Appointment[]
+  server_time: string
+  channels: string[]
 }
 
 export interface Meta {

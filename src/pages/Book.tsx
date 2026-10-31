@@ -3,7 +3,7 @@ import { ArrowLeft, ArrowRight, Check, CircleAlert, Shuffle, Ticket as TicketIco
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router'
 import { toast } from 'sonner'
-import { Button, EmptyState, Monogram, Skeleton, Textarea } from '../components/ui'
+import { Button, EmptyState, Field, Input, Monogram, Skeleton, Textarea } from '../components/ui'
 import { ApiError, errorMessage } from '../lib/api'
 import { dayParts, duration, hourOf, longDate, money, time } from '../lib/format'
 import { useBarbers, useBook, useDays, useMeta, useServices, useSlots } from '../lib/queries'
@@ -24,14 +24,24 @@ function useBookingParams() {
       },
       { replace: true },
     )
-  return { service: get('s'), barber: get('b'), date: get('d'), slot: get('t'), step: Number(get('step') ?? 0), set }
+  return {
+    service: get('s'),
+    barber: get('b'),
+    date: get('d'),
+    slot: get('t'),
+    step: Number(get('step') ?? 0),
+    set,
+  }
 }
 
 function Progress({ step, onJump, max }: { step: number; onJump: (i: number) => void; max: number }) {
   return (
     <div className="space-y-4">
       <div className="relative h-1.5 overflow-hidden rounded-full bg-smoke">
-        <div className="pole animate-pole absolute inset-y-0 left-0 rounded-full transition-all duration-500" style={{ width: `${((step + 1) / STEPS.length) * 100}%` }} />
+        <div
+          className="pole animate-pole absolute inset-y-0 left-0 rounded-full transition-all duration-500"
+          style={{ width: `${((step + 1) / STEPS.length) * 100}%` }}
+        />
       </div>
       <ol className="grid grid-cols-4 gap-2">
         {STEPS.map((s, i) => (
@@ -39,7 +49,10 @@ function Progress({ step, onJump, max }: { step: number; onJump: (i: number) => 
             <button
               disabled={i > max}
               onClick={() => onJump(i)}
-              className={clsx('w-full text-left font-mono text-[0.6rem] leading-tight tracking-[0.06em] uppercase sm:text-[0.68rem] sm:tracking-[0.14em] transition-colors disabled:cursor-not-allowed', i === step ? 'text-brass' : i <= max ? 'text-ash hover:text-bone' : 'text-dust')}
+              className={clsx(
+                'w-full text-left font-mono text-[0.6rem] leading-tight tracking-[0.06em] uppercase sm:text-[0.68rem] sm:tracking-[0.14em] transition-colors disabled:cursor-not-allowed',
+                i === step ? 'text-brass' : i <= max ? 'text-ash hover:text-bone' : 'text-dust',
+              )}
             >
               <span className="hidden sm:inline">{String(i + 1).padStart(2, '0')} · </span>
               {s}
@@ -52,7 +65,14 @@ function Progress({ step, onJump, max }: { step: number; onJump: (i: number) => 
 }
 
 function ServiceStep({ services, value, onPick }: { services?: Service[]; value: string | null; onPick: (id: string) => void }) {
-  if (!services) return <div className="grid gap-3">{Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-24" />)}</div>
+  if (!services)
+    return (
+      <div className="grid gap-3">
+        {Array.from({ length: 4 }, (_, i) => (
+          <Skeleton key={i} className="h-24" />
+        ))}
+      </div>
+    )
   return (
     <div className="grid gap-3">
       {services.map((s) => (
@@ -64,7 +84,12 @@ function ServiceStep({ services, value, onPick }: { services?: Service[]; value:
             value === s.id ? 'border-brass bg-brass/5' : 'border-line bg-coal hover:border-ash/40',
           )}
         >
-          <span className={clsx('grid size-6 shrink-0 place-items-center rounded-full border transition-colors', value === s.id ? 'border-brass bg-brass text-ink' : 'border-line')}>
+          <span
+            className={clsx(
+              'grid size-6 shrink-0 place-items-center rounded-full border transition-colors',
+              value === s.id ? 'border-brass bg-brass text-ink' : 'border-line',
+            )}
+          >
             {value === s.id && <Check className="size-3.5" strokeWidth={3} />}
           </span>
           <span className="flex-1">
@@ -82,7 +107,14 @@ function ServiceStep({ services, value, onPick }: { services?: Service[]; value:
 }
 
 function BarberStep({ barbers, value, onPick }: { barbers?: Barber[]; value: string | null; onPick: (id: string) => void }) {
-  if (!barbers) return <div className="grid gap-3 sm:grid-cols-2">{Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-36" />)}</div>
+  if (!barbers)
+    return (
+      <div className="grid gap-3 sm:grid-cols-2">
+        {Array.from({ length: 4 }, (_, i) => (
+          <Skeleton key={i} className="h-36" />
+        ))}
+      </div>
+    )
   const card = (active: boolean) =>
     clsx('flex flex-col gap-4 rounded-2xl border p-5 text-left transition-all', active ? 'border-brass bg-brass/5' : 'border-line bg-coal hover:border-ash/40')
   return (
@@ -110,7 +142,14 @@ function BarberStep({ barbers, value, onPick }: { barbers?: Barber[]; value: str
   )
 }
 
-function WhenStep({ serviceId, barberId, date, slot, onDate, onSlot }: {
+function WhenStep({
+  serviceId,
+  barberId,
+  date,
+  slot,
+  onDate,
+  onSlot,
+}: {
   serviceId: string
   barberId: string | null
   date: string | null
@@ -174,7 +213,13 @@ function WhenStep({ serviceId, barberId, date, slot, onDate, onSlot }: {
       {date && (
         <div className="space-y-6">
           <p className="font-serif text-2xl text-ash italic first-letter:uppercase">{longDate(`${date}T12:00:00Z`)}</p>
-          {slots.isLoading && <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">{Array.from({ length: 12 }, (_, i) => <Skeleton key={i} className="h-12" />)}</div>}
+          {slots.isLoading && (
+            <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">
+              {Array.from({ length: 12 }, (_, i) => (
+                <Skeleton key={i} className="h-12" />
+              ))}
+            </div>
+          )}
           {slots.data?.length === 0 && (
             <EmptyState icon={<CircleAlert className="size-8" />} title="Día completo">
               Prueba con otro día u otro barbero.
@@ -206,7 +251,19 @@ function WhenStep({ serviceId, barberId, date, slot, onDate, onSlot }: {
   )
 }
 
-function TicketCard({ service, barber, slot, code, printed }: { service?: Service; barber?: Barber | 'any'; slot?: string | null; code?: string; printed?: boolean }) {
+function TicketCard({
+  service,
+  barber,
+  slot,
+  code,
+  printed,
+}: {
+  service?: Service
+  barber?: Barber | 'any'
+  slot?: string | null
+  code?: string
+  printed?: boolean
+}) {
   const row = (k: string, v?: React.ReactNode) => (
     <div className="flex items-baseline gap-3 py-2">
       <span className="font-mono text-[0.65rem] tracking-[0.16em] text-ink/50 uppercase">{k}</span>
@@ -236,7 +293,14 @@ function TicketCard({ service, barber, slot, code, printed }: { service?: Servic
         {/* Código de barras decorativo */}
         <div className="mt-5 flex h-10 items-end gap-[2px] opacity-80" aria-hidden>
           {Array.from({ length: 46 }, (_, i) => (
-            <span key={i} className="bg-ink" style={{ width: (i * 7) % 3 === 0 ? 3 : 1, height: `${60 + ((i * 37) % 40)}%` }} />
+            <span
+              key={i}
+              className="bg-ink"
+              style={{
+                width: (i * 7) % 3 === 0 ? 3 : 1,
+                height: `${60 + ((i * 37) % 40)}%`,
+              }}
+            />
           ))}
         </div>
       </div>
@@ -256,8 +320,8 @@ function Success({ appt, service, barber }: { appt: Appointment; service?: Servi
           Silla <em className="font-serif font-normal text-brass normal-case italic">reservada</em>
         </h1>
         <p className="text-lg text-ash">
-          Te esperamos el <span className="text-bone">{longDate(appt.starts_at)}</span> a las <span className="font-mono text-bone">{time(appt.starts_at)}</span> con{' '}
-          {appt.barber_name}. Puedes cancelar gratis hasta 2 horas antes.
+          Te esperamos el <span className="text-bone">{longDate(appt.starts_at)}</span> a las{' '}
+          <span className="font-mono text-bone">{time(appt.starts_at)}</span> con {appt.barber_name}. Puedes cancelar gratis hasta 2 horas antes.
         </p>
         <div className="flex flex-wrap gap-3">
           <Link to="/mis-citas" className="inline-flex h-12 items-center rounded-full bg-brass px-6 font-bold text-ink hover:bg-bone">
@@ -286,6 +350,9 @@ export default function Book() {
   const location = useLocation()
   const book = useBook()
   const [notes, setNotes] = useState('')
+  const [phone, setPhone] = useState<string | null>(null)
+  const phoneValue = phone ?? user?.phone ?? ''
+  const phoneOk = /^\+?[0-9 ()-]{6,30}$/.test(phoneValue.trim())
   const [done, setDone] = useState<Appointment | null>(null)
 
   const service = services.data?.find((s) => s.id === p.service)
@@ -308,6 +375,11 @@ export default function Book() {
       navigate(`/login?next=${encodeURIComponent(location.pathname + location.search)}`)
       return
     }
+    if (!phoneOk) {
+      toast.error('Déjanos un teléfono válido para poder llamarte si hace falta.')
+      document.getElementById('book-phone')?.focus()
+      return
+    }
     const barberId = barberParam ?? slot?.barber_ids[0]
     if (!service || !barberId || !p.slot) {
       toast.error('Ese hueco ya no está disponible. Elige otro.')
@@ -315,7 +387,14 @@ export default function Book() {
       return
     }
     try {
-      const appt = await book.mutateAsync({ service_id: service.id, barber_id: barberId, starts_at: p.slot, notes })
+      const appt = await book.mutateAsync({
+        service_id: service.id,
+        barber_id: barberId,
+        starts_at: p.slot,
+        notes,
+        phone: phoneValue.trim(),
+      })
+      if (user && user.phone !== phoneValue.trim()) useAuth.getState().setUser({ ...user, phone: phoneValue.trim() })
       setDone(appt)
       window.scrollTo({ top: 0 })
     } catch (e) {
@@ -339,7 +418,14 @@ export default function Book() {
             {step === 0 && <ServiceStep services={services.data} value={p.service} onPick={(id) => set({ s: id, t: null, d: null, step: '1' })} />}
             {step === 1 && <BarberStep barbers={barbers.data} value={p.barber} onPick={(id) => set({ b: id, t: null, d: null, step: '2' })} />}
             {step === 2 && p.service && (
-              <WhenStep serviceId={p.service} barberId={barberParam} date={p.date} slot={p.slot} onDate={pickDate} onSlot={(s) => set({ t: s.starts_at, step: '3' })} />
+              <WhenStep
+                serviceId={p.service}
+                barberId={barberParam}
+                date={p.date}
+                slot={p.slot}
+                onDate={pickDate}
+                onSlot={(s) => set({ t: s.starts_at, step: '3' })}
+              />
             )}
             {step === 3 && (
               <div className="space-y-6">
@@ -349,11 +435,30 @@ export default function Book() {
                     Revisa tu ticket. Puedes cancelar sin coste hasta {Math.round((meta.data?.cancel_window_min ?? 120) / 60)} h antes de la cita.
                   </p>
                 </div>
+                {user && (
+                  <Field
+                    label="Teléfono de contacto"
+                    error={phoneValue && !phoneOk ? 'Teléfono no válido' : undefined}
+                    hint="Obligatorio. Edgar te llamará solo si hay algún cambio en tu cita."
+                  >
+                    <Input
+                      id="book-phone"
+                      type="tel"
+                      inputMode="tel"
+                      autoComplete="tel"
+                      required
+                      placeholder="+34 600 000 000"
+                      value={phoneValue}
+                      aria-invalid={!!phoneValue && !phoneOk}
+                      onChange={(e) => setPhone(e.target.value)}
+                    />
+                  </Field>
+                )}
                 <label className="block space-y-2">
                   <span className="label">Notas para el barbero (opcional)</span>
                   <Textarea maxLength={500} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Ej.: degradado bajo, dejar volumen arriba…" />
                 </label>
-                <Button size="lg" className="w-full sm:w-auto" onClick={confirm} loading={book.isPending}>
+                <Button size="lg" className="w-full sm:w-auto" onClick={confirm} loading={book.isPending} disabled={!!user && !phoneOk}>
                   {user ? 'Confirmar reserva' : 'Entrar y confirmar'} <ArrowRight className="size-5" />
                 </Button>
               </div>
@@ -371,7 +476,11 @@ export default function Book() {
           <p className="label mb-4 flex items-center gap-2">
             <TicketIcon className="size-3.5" /> Tu ticket
           </p>
-          <TicketCard service={service} barber={barber === 'any' && slot ? barbers.data?.find((b) => b.id === slot.barber_ids[0]) ?? 'any' : barber} slot={p.slot} />
+          <TicketCard
+            service={service}
+            barber={barber === 'any' && slot ? (barbers.data?.find((b) => b.id === slot.barber_ids[0]) ?? 'any') : barber}
+            slot={p.slot}
+          />
         </aside>
       </div>
     </div>
