@@ -31,5 +31,4 @@ npm run dev        # http://localhost:5173, proxya /api a http://localhost:8080 
 
 ## Despliegue
 
-- `develop` → `ghcr.io/jcrlabs/barber-front:develop-<sha>` → `edgarbarber-test.jcrlabs.net`
 - tag `vX.Y.Z` → `ghcr.io/jcrlabs/barber-front:vX.Y.Z` → `edgarbarber.jcrlabs.net`

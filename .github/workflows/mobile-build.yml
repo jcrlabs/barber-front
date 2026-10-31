@@ -19,6 +19,8 @@ jobs:
   android-apk:
     name: Build Android APK
     runs-on: ubuntu-latest
+    env:
+      NAS_WEBDAV_USER: ${{ secrets.NAS_WEBDAV_USER }}
     steps:
       - uses: actions/checkout@v7
 
@@ -51,6 +53,22 @@ jobs:
           name: edgar-barber-debug.apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30
+
+      # Publicamos la APK en la carpeta "barber" del NAS (Nextcloud), compartida con enlace público:
+      # una copia por versión y "edgar-barber-latest.apk" siempre apuntando a la última.
+      - name: Publish APK to NAS
+        if: env.NAS_WEBDAV_USER != ''
+        env:
+          NAS_WEBDAV_PASSWORD: ${{ secrets.NAS_WEBDAV_PASSWORD }}
+          NAS_DAV: https://nas.jcrlabs.net/remote.php/dav/files/${{ secrets.NAS_WEBDAV_USER }}/barber
+        run: |
+          VERSION="${GITHUB_REF_NAME}"
+          [[ "$GITHUB_REF" == refs/tags/v* ]] || VERSION="dev-${GITHUB_SHA::7}"
+          APK=android/app/build/outputs/apk/debug/app-debug.apk
+          for name in "edgar-barber-${VERSION}.apk" "edgar-barber-latest.apk"; do
+            curl -fsS --retry 3 -u "$NAS_WEBDAV_USER:$NAS_WEBDAV_PASSWORD" -T "$APK" "$NAS_DAV/$name"
+          done
+          echo "APK publicada en el NAS: edgar-barber-${VERSION}.apk" >> "$GITHUB_STEP_SUMMARY"
 
   ios-build:
     name: Build iOS
