@@ -1,11 +1,77 @@
-import { ArrowRight, CalendarCheck, Phone, Scissors } from 'lucide-react'
+import { clsx } from 'clsx'
+import { ArrowRight, CalendarCheck, Phone, Scissors, Zap } from 'lucide-react'
 import { useEffect } from 'react'
 import { Link, useLocation } from 'react-router'
 import { InstallCard } from '../components/InstallCard'
+import { Marquee, Reveal, Rotator, Spotlight } from '../components/motion'
 import { Monogram, Pole, SectionTitle, Skeleton } from '../components/ui'
-import { duration, minutesToHHMM, WEEKDAYS } from '../lib/format'
-import { useBarbers, useServices } from '../lib/queries'
+import { dayParts, duration, minutesToHHMM, time, todayInShop, WEEKDAYS } from '../lib/format'
+import { useBarbers, useDays, useServices, useSlots } from '../lib/queries'
 import type { Barber } from '../lib/types'
+
+/** Primer servicio y barbero (la barbería tiene uno de cada) y los próximos días con hueco. */
+function useAvailability() {
+  const services = useServices()
+  const barbers = useBarbers()
+  const serviceId = services.data?.[0]?.id ?? null
+  const barberId = barbers.data?.length === 1 ? barbers.data[0]!.id : null
+  const days = useDays(serviceId, barberId)
+  const firstFree = days.data?.find((d) => d.free > 0)
+  const slots = useSlots(serviceId, barberId, firstFree?.date ?? null)
+  const next = slots.data?.[0]
+  return { serviceId, barberId, days: days.data, firstFree, next, loading: days.isLoading || (!!firstFree && slots.isLoading) }
+}
+
+const relDay = (ymd: string) => {
+  const today = todayInShop()
+  if (ymd === today) return 'Hoy'
+  const d = new Date(`${today}T12:00:00Z`)
+  d.setUTCDate(d.getUTCDate() + 1)
+  if (ymd === d.toISOString().slice(0, 10)) return 'Mañana'
+  const p = dayParts(ymd)
+  return `${p.weekday} ${p.day} ${p.month}`
+}
+
+/** Ticket flotante con el próximo hueco libre: un toque y vas directo a confirmar. */
+function NextSlot() {
+  const a = useAvailability()
+  const href =
+    a.next && a.serviceId
+      ? `/reservar?${new URLSearchParams({
+          s: a.serviceId,
+          ...(a.barberId ? { b: a.barberId } : {}),
+          d: a.firstFree!.date,
+          t: a.next.starts_at,
+          step: '3',
+        })}`
+      : '/reservar'
+  return (
+    <Link
+      to={href}
+      className="group animate-float relative block w-72 rotate-[-3deg] rounded-3xl bg-bone p-6 text-ink shadow-[0_30px_80px_-20px_rgb(0_0_0/.8)] transition-transform hover:rotate-0"
+    >
+      <span className="absolute -top-3 left-6 flex items-center gap-1.5 rounded-full bg-ink px-3 py-1 font-mono text-[0.6rem] tracking-[0.18em] text-brass uppercase">
+        <span className="size-1.5 animate-pulse rounded-full bg-[#9dc086]" /> En directo
+      </span>
+      <p className="font-mono text-[0.65rem] tracking-[0.18em] text-dust uppercase">Próximo hueco libre</p>
+      {a.loading ? (
+        <div className="mt-3 h-16 animate-pulse rounded-xl bg-ink/10" />
+      ) : a.next ? (
+        <>
+          <p className="mt-2 font-display text-3xl leading-none font-black uppercase">{relDay(a.firstFree!.date)}</p>
+          <p className="font-display text-7xl leading-none font-black tabular-nums">{time(a.next.starts_at)}</p>
+          <p className="mt-1 text-sm text-dust">{a.firstFree!.free === 1 ? 'Último hueco del día' : `${a.firstFree!.free} huecos ese día`}</p>
+        </>
+      ) : (
+        <p className="mt-3 font-display text-3xl font-black uppercase">Agenda llena</p>
+      )}
+      <div className="my-4 border-t-2 border-dashed border-ink/15" />
+      <span className="flex items-center justify-between font-bold">
+        {a.next ? 'Reservar este' : 'Ver otros días'} <ArrowRight className="size-5 transition-transform group-hover:translate-x-1" />
+      </span>
+    </Link>
+  )
+}
 
 function Hero() {
   return (
@@ -18,7 +84,10 @@ function Hero() {
           <h1 className="font-display text-[clamp(4.2rem,13vw,10.5rem)] leading-[0.82] font-black tracking-[-0.02em] uppercase">
             Corte
             <br />
-            <span className="text-stroke">de</span> <em className="font-serif font-normal tracking-normal text-brass normal-case italic">precisión</em>
+            <span className="text-stroke">de</span>{' '}
+            <em className="font-serif font-normal tracking-normal text-brass normal-case italic [perspective:600px]">
+              <Rotator words={['precisión', 'oficio', 'estilo', 'barrio']} />
+            </em>
           </h1>
           <p className="max-w-md text-lg text-ash">Elige día y hora para tu corte con Edgar. Ves los huecos libres al momento y reservas sin llamar.</p>
           <div className="flex flex-wrap items-center gap-4">
@@ -34,10 +103,16 @@ function Hero() {
           </div>
         </div>
 
-        {/* Poste de barbero gigante: elemento de marca */}
-        <div className="relative hidden h-[480px] justify-self-center lg:block" aria-hidden>
-          <div className="absolute -inset-16 rounded-full bg-brass/10 blur-3xl" />
-          <div className="relative flex h-full flex-col items-center">
+        {/* Poste de barbero gigante con el ticket del próximo hueco encima */}
+        <div className="relative justify-self-center lg:hidden">
+          <NextSlot />
+        </div>
+        <div className="relative hidden h-[480px] justify-self-center lg:block">
+          <div className="absolute top-1/2 -left-48 z-10 -translate-y-1/2">
+            <NextSlot />
+          </div>
+          <div className="absolute -inset-16 rounded-full bg-brass/10 blur-3xl" aria-hidden />
+          <div className="relative flex h-full flex-col items-center" aria-hidden>
             <div className="h-10 w-28 rounded-t-[2rem] border border-brass/60 bg-gradient-to-b from-brass to-brass-deep" />
             <div className="relative h-full w-24 overflow-hidden border-x border-brass/60 bg-bone/90">
               <div className="pole animate-pole absolute inset-0 [background-size:100%_56px] [animation-duration:2.4s]" />
@@ -51,15 +126,67 @@ function Hero() {
   )
 }
 
+/** Disponibilidad de los próximos días: cada barra se llena según los huecos libres de ese día. */
+function Week() {
+  const a = useAvailability()
+  const days = (a.days ?? []).slice(0, 14)
+  if (!a.loading && days.length === 0) return null
+  return (
+    <section className="mx-auto max-w-7xl px-5 pt-20">
+      <Reveal>
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <SectionTitle eyebrow="Disponibilidad" title="Próximos" accent="días" />
+          <p className="flex items-center gap-2 text-sm text-ash">
+            <Zap className="size-4 text-brass" /> Se actualiza en tiempo real
+          </p>
+        </div>
+      </Reveal>
+      <div className="-mx-5 mt-8 flex snap-x gap-3 overflow-x-auto px-5 pb-2">
+        {a.loading && Array.from({ length: 7 }).map((_, i) => <Skeleton key={i} className="h-40 w-24 shrink-0" />)}
+        {days.map((d, i) => {
+          const p = dayParts(d.date)
+          const pct = d.total ? (d.free / d.total) * 100 : 0
+          const href = a.serviceId
+            ? `/reservar?${new URLSearchParams({ s: a.serviceId, ...(a.barberId ? { b: a.barberId } : {}), d: d.date, step: '2' })}`
+            : '/reservar'
+          return (
+            <Link
+              key={d.date}
+              to={d.free ? href : '#'}
+              aria-disabled={!d.free}
+              className={clsx(
+                'group flex w-24 shrink-0 snap-start flex-col items-center gap-2 rounded-2xl border p-3 transition-all',
+                d.free ? 'border-line bg-coal hover:-translate-y-1 hover:border-brass' : 'pointer-events-none border-line/50 opacity-40',
+              )}
+              style={{ animation: `rise .5s ${i * 40}ms both cubic-bezier(.2,.7,.2,1)` }}
+            >
+              <span className="font-mono text-[0.65rem] text-ash uppercase">{p.weekday}</span>
+              <span className="font-display text-4xl leading-none font-black group-hover:text-brass">{p.day}</span>
+              <span className="font-mono text-[0.6rem] text-dust uppercase">{p.month}</span>
+              <span className="relative h-1.5 w-full overflow-hidden rounded-full bg-smoke">
+                <span
+                  className="animate-fill absolute inset-y-0 left-0 origin-left rounded-full bg-brass"
+                  style={{ width: `${pct}%`, animationDelay: `${300 + i * 40}ms` }}
+                />
+              </span>
+              <span className="font-mono text-[0.65rem] text-ash">{d.open ? (d.free ? `${d.free} libres` : 'Lleno') : 'Cerrado'}</span>
+            </Link>
+          )
+        })}
+      </div>
+    </section>
+  )
+}
+
 function Carta() {
   const { data: services, isLoading } = useServices()
   return (
     <section id="carta" className="mx-auto max-w-7xl scroll-mt-24 px-5 pt-24">
       <div className="grid gap-12 lg:grid-cols-[1fr_1.4fr]">
-        <div className="space-y-6 lg:sticky lg:top-28 lg:self-start">
+        <Reveal className="space-y-6 lg:sticky lg:top-28 lg:self-start">
           <SectionTitle eyebrow="El servicio" title="Corte" accent="con Edgar" />
           <p className="max-w-sm text-ash">Citas de {services?.[0] ? duration(services[0].duration_min) : '30 min'}.</p>
-        </div>
+        </Reveal>
         <ol className="divide-y divide-line border-y border-line">
           {isLoading &&
             Array.from({ length: 1 }).map((_, i) => (
@@ -105,31 +232,33 @@ function Edgar() {
   if (!b) return null
   const s = schedule(b)
   return (
-    <section id="equipo" className="mx-auto max-w-7xl scroll-mt-24 px-5 pt-28">
-      <div className="grid items-center gap-10 rounded-[2rem] border border-line bg-coal p-8 sm:p-12 md:grid-cols-[auto_1fr_auto]">
-        <Monogram name={b.name} src={b.avatar_url} className="size-28 text-5xl" />
-        <div className="space-y-3">
-          <p className="label text-brass">{b.title || 'Barbero'}</p>
-          <h2 className="font-display text-6xl leading-none font-black uppercase">{b.name}</h2>
-          {b.bio && <p className="max-w-xl text-ash">{b.bio}</p>}
-          <div className="flex flex-wrap gap-1.5 pt-2">
-            {s.days.map((d) => (
-              <span key={d} className="rounded-md border border-line px-2 py-0.5 font-mono text-[0.7rem] text-ash">
-                {d}
-              </span>
-            ))}
-            {s.from && (
-              <span className="px-1 font-mono text-[0.7rem] text-dust">
-                {s.from}–{s.to}
-              </span>
-            )}
+    <Reveal className="mx-auto max-w-7xl scroll-mt-24 px-5 pt-28">
+      <section id="equipo">
+        <Spotlight className="grid items-center gap-10 rounded-[2rem] border border-line bg-coal p-8 sm:p-12 md:grid-cols-[auto_1fr_auto]">
+          <Monogram name={b.name} src={b.avatar_url} className="size-28 text-5xl" />
+          <div className="space-y-3">
+            <p className="label text-brass">{b.title || 'Barbero'}</p>
+            <h2 className="font-display text-6xl leading-none font-black uppercase">{b.name}</h2>
+            {b.bio && <p className="max-w-xl text-ash">{b.bio}</p>}
+            <div className="flex flex-wrap gap-1.5 pt-2">
+              {s.days.map((d) => (
+                <span key={d} className="rounded-md border border-line px-2 py-0.5 font-mono text-[0.7rem] text-ash">
+                  {d}
+                </span>
+              ))}
+              {s.from && (
+                <span className="px-1 font-mono text-[0.7rem] text-dust">
+                  {s.from}–{s.to}
+                </span>
+              )}
+            </div>
           </div>
-        </div>
-        <Link to="/reservar" className="inline-flex h-12 items-center gap-2 justify-self-start rounded-full bg-brass px-6 font-bold text-ink hover:bg-bone">
-          <Scissors className="size-4" /> Reservar
-        </Link>
-      </div>
-    </section>
+          <Link to="/reservar" className="inline-flex h-12 items-center gap-2 justify-self-start rounded-full bg-brass px-6 font-bold text-ink hover:bg-bone">
+            <Scissors className="size-4" /> Reservar
+          </Link>
+        </Spotlight>
+      </section>
+    </Reveal>
   )
 }
 
@@ -145,14 +274,14 @@ function Ritual() {
         <Pole className="absolute top-0 left-0 h-full w-2 rounded-none" />
         <SectionTitle eyebrow="Cómo funciona" title="Tres pasos." accent="Sin llamadas." />
         <div className="mt-12 grid gap-10 sm:grid-cols-3">
-          {steps.map((s) => (
-            <div key={s.n} className="space-y-3">
+          {steps.map((s, i) => (
+            <Reveal key={s.n} delay={i * 120} className="space-y-3">
               <span className="flex items-center gap-3 font-serif text-5xl text-brass italic">
                 {s.n} <s.icon className="size-5" aria-hidden />
               </span>
               <h3 className="font-display text-3xl font-bold uppercase">{s.t}</h3>
               <p className="text-ash">{s.d}</p>
-            </div>
+            </Reveal>
           ))}
         </div>
         <Link
@@ -176,6 +305,11 @@ export default function Home() {
     <>
       <InstallCard />
       <Hero />
+      <Marquee
+        className="border-y border-line bg-coal py-4 font-display text-3xl font-black tracking-wide text-ash uppercase"
+        items={['Corte con Edgar', '30 minutos', 'Reserva online', 'Sin llamadas', 'Avisos al móvil']}
+      />
+      <Week />
       <Carta />
       <Edgar />
       <Ritual />

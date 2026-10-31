@@ -8,7 +8,7 @@ import { useAdminMutation, useAdminUsers } from '../../lib/queries'
 import type { Role } from '../../lib/types'
 import { useAuth } from '../../store/auth'
 
-const roles: Record<Role, string> = { client: 'Usuario', admin: 'Admin' }
+const roles: Record<Role, string> = { client: 'Usuario', barber: 'Barbero', admin: 'Admin' }
 
 export function AdminUsers() {
   const me = useAuth((s) => s.user)

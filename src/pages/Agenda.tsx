@@ -8,6 +8,8 @@ import { useNow } from '../lib/useNow'
 import { longDate, statusLabel, time, todayInShop } from '../lib/format'
 import { useAdminBarbers, useAgenda, useSetStatus } from '../lib/queries'
 import { dialable, whatsappLink } from '../lib/phone'
+import { isAdmin } from '../lib/roles'
+import { useAuth } from '../store/auth'
 
 const shift = (ymd: string, days: number) => {
   const d = new Date(`${ymd}T12:00:00Z`)
@@ -18,7 +20,8 @@ const shift = (ymd: string, days: number) => {
 export default function Agenda() {
   const [day, setDay] = useState(todayInShop())
   const [barberId, setBarberId] = useState('')
-  const barbers = useAdminBarbers()
+  const admin = isAdmin(useAuth((s) => s.user))
+  const barbers = useAdminBarbers(admin)
   const { data, isLoading, error } = useAgenda(day, shift(day, 1), barberId || undefined)
   const setStatus = useSetStatus()
   const now = useNow()

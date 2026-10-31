@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from './api'
-import type { Appointment, Barber, DayOverride, DaySummary, Meta, Notifications, Page, Provider, Service, Slot, Stats, User } from './types'
+import type { Appointment, Barber, DayOverride, DaySummary, Meta, Notifications, Page, Provider, Service, Slot, StaffMe, Stats, User } from './types'
 
 export const qk = {
   meta: ['meta'] as const,
@@ -136,17 +136,26 @@ export const useAdminUsers = (p: { q: string; role: string; offset: number }) =>
 export const useOverrides = () =>
   useQuery({
     queryKey: qk.admin('overrides'),
-    queryFn: () => api<DayOverride[]>('/admin/overrides'),
+    queryFn: () => api<DayOverride[]>('/staff/overrides'),
   })
 
-/** Reservas creadas desde `since`; el panel lo consulta cada 30 s para avisar al admin. */
+/** Reservas creadas desde `since`; el panel lo consulta cada 30 s para avisar al barbero o al admin. */
 export const useNotifications = (since: string, enabled: boolean) =>
   useQuery({
     queryKey: qk.admin('notifications', since),
-    queryFn: () => api<Notifications>(`/admin/notifications?${qs({ since })}`),
+    queryFn: () => api<Notifications>(`/staff/notifications?${qs({ since })}`),
     enabled,
     refetchInterval: 30_000,
     refetchIntervalInBackground: true,
+  })
+
+/** Perfil de barbero enlazado a la cuenta (horario y canales de aviso). 403 si la cuenta no está enlazada. */
+export const useStaffMe = (enabled = true) =>
+  useQuery({
+    queryKey: qk.admin('staff-me'),
+    queryFn: () => api<StaffMe>('/staff/me'),
+    enabled,
+    retry: false,
   })
 
 /** Mutación genérica de admin que refresca catálogo público y panel. */

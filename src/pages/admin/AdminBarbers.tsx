@@ -1,10 +1,10 @@
 import { Pencil, Plus, Trash2, X } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { Button, Field, Input, Modal, Monogram, Skeleton, Textarea } from '../../components/ui'
 import { api, errorMessage } from '../../lib/api'
 import { hhmmToMinutes, minutesToHHMM, WEEKDAYS } from '../../lib/format'
-import { useAdminBarbers, useAdminMutation } from '../../lib/queries'
+import { useAdminBarbers, useAdminMutation, useAdminUsers } from '../../lib/queries'
 import type { Barber, WorkingHours } from '../../lib/types'
 
 const ORDER = [1, 2, 3, 4, 5, 6, 0] // lunes primero
@@ -64,6 +64,51 @@ export function HoursEditor({ value, onChange }: { value: WorkingHours[]; onChan
   )
 }
 
+/** Cuenta con la que el barbero entra a su panel. Al enlazarla pasa a tener rol de barbero. */
+function AccountPicker({ value, onChange }: { value: string | null; onChange: (id: string | null) => void }) {
+  const [input, setInput] = useState('')
+  const [q, setQ] = useState('')
+  useEffect(() => {
+    const t = setTimeout(() => setQ(input), 300)
+    return () => clearTimeout(t)
+  }, [input])
+  const { data } = useAdminUsers({ q, role: '', offset: 0 })
+  const all = useAdminUsers({ q: '', role: '', offset: 0 })
+  const linked = [...(all.data?.items ?? []), ...(data?.items ?? [])].find((u) => u.id === value)
+  return (
+    <div className="space-y-2">
+      <span className="label">Cuenta del barbero</span>
+      {value ? (
+        <div className="flex items-center gap-3 rounded-xl border border-brass/40 bg-smoke px-3 py-2">
+          <span className="min-w-0 flex-1 truncate text-sm">
+            <b>{linked?.name ?? 'Cuenta enlazada'}</b> <span className="text-ash">{linked?.email}</span>
+          </span>
+          <button type="button" onClick={() => onChange(null)} className="text-dust hover:text-[#e2786c]" aria-label="Desenlazar cuenta">
+            <X className="size-4" />
+          </button>
+        </div>
+      ) : (
+        <>
+          <Input placeholder="Buscar por nombre o email…" maxLength={100} value={input} onChange={(e) => setInput(e.target.value)} />
+          {q && (
+            <ul className="max-h-40 overflow-y-auto rounded-xl border border-line">
+              {data?.items.slice(0, 6).map((u) => (
+                <li key={u.id}>
+                  <button type="button" onClick={() => onChange(u.id)} className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-smoke">
+                    <b>{u.name}</b> <span className="truncate text-ash">{u.email}</span>
+                  </button>
+                </li>
+              ))}
+              {data?.items.length === 0 && <li className="px-3 py-2 text-sm text-dust">Sin resultados</li>}
+            </ul>
+          )}
+          <p className="text-xs text-dust">Con su cuenta enlazada, el barbero edita su horario y recibe sus propias citas.</p>
+        </>
+      )}
+    </div>
+  )
+}
+
 function BarberForm({ initial, onDone }: { initial?: Barber; onDone: () => void }) {
   const [b, setB] = useState({
     name: initial?.name ?? '',
@@ -106,6 +151,7 @@ function BarberForm({ initial, onDone }: { initial?: Barber; onDone: () => void 
       <Field label="Foto (URL https)">
         <Input type="url" value={b.avatar_url} onChange={(e) => setB({ ...b, avatar_url: e.target.value })} placeholder="https://…" />
       </Field>
+      <AccountPicker value={b.user_id} onChange={(user_id) => setB({ ...b, user_id })} />
       <div className="space-y-2">
         <span className="label">Horario semanal</span>
         <HoursEditor value={b.hours} onChange={(hours) => setB({ ...b, hours })} />
@@ -176,7 +222,9 @@ export function AdminBarbers() {
                 </span>
               ))}
             </div>
-            <p className="text-xs text-dust">{b.active ? 'Acepta reservas' : 'Inactivo'}</p>
+            <p className="text-xs text-dust">
+              {b.active ? 'Acepta reservas' : 'Inactivo'} · {b.user_id ? 'Con cuenta propia' : 'Sin cuenta enlazada'}
+            </p>
           </div>
         ))}
       </div>

@@ -16,6 +16,7 @@ const MyAppointments = lazy(() => import('./pages/MyAppointments'))
 const Profile = lazy(() => import('./pages/Profile'))
 const Agenda = lazy(() => import('./pages/Agenda'))
 const Admin = lazy(() => import('./pages/admin/Admin'))
+const BarberPanel = lazy(() => import('./pages/BarberPanel'))
 
 const fallback = (
   <div className="grid min-h-[50vh] place-items-center">
@@ -49,7 +50,8 @@ const router = createBrowserRouter([
       { path: '/auth/callback', element: <AuthCallback /> },
       { path: '/mis-citas', element: <RequireAuth>{lazyEl(<MyAppointments />)}</RequireAuth> },
       { path: '/perfil', element: <RequireAuth>{lazyEl(<Profile />)}</RequireAuth> },
-      { path: '/agenda', element: <RequireAuth roles={['admin']}>{lazyEl(<Agenda />)}</RequireAuth> },
+      { path: '/agenda', element: <RequireAuth roles={['barber', 'admin']}>{lazyEl(<Agenda />)}</RequireAuth> },
+      { path: '/mi-panel', element: <RequireAuth roles={['barber', 'admin']}>{lazyEl(<BarberPanel />)}</RequireAuth> },
       { path: '/admin', element: <RequireAuth roles={['admin']}>{lazyEl(<Admin />)}</RequireAuth> },
       { path: '*', element: <NotFound /> },
     ],

@@ -80,6 +80,7 @@ const messages: Record<string, string> = {
   slot_invalid: 'Ese hueco ya no está disponible.',
   too_many_active: 'Has alcanzado el máximo de citas pendientes.',
   phone_required: 'Necesitamos un teléfono para poder contactarte.',
+  not_linked: 'Tu cuenta aún no está enlazada a un barbero.',
   too_late_to_cancel: 'Ya no se puede cancelar online. Llámanos.',
   invalid_state: 'La cita ya no admite ese cambio.',
   not_found: 'No encontrado.',

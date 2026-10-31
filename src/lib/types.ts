@@ -1,4 +1,4 @@
-export type Role = 'client' | 'admin'
+export type Role = 'client' | 'barber' | 'admin'
 export type AppointmentStatus = 'confirmed' | 'completed' | 'cancelled' | 'no_show'
 
 export interface User {
@@ -124,3 +124,19 @@ export interface Provider {
   name: string
   label: string
 }
+
+export interface NotifySettings {
+  ntfy_topic: string
+  ntfy_url: string
+  email: string
+  whatsapp_phone: string
+  callmebot_key: string
+  email_enabled: boolean
+}
+
+export interface StaffMe {
+  barber: Barber
+  notify: NotifySettings
+}
+
+export type ChannelResult = 'ok' | 'error' | 'off'

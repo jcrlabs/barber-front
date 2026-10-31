@@ -83,14 +83,26 @@ function MonthGrid({ month, overrides, onPick }: { month: string; overrides: Day
   )
 }
 
-function OverrideForm({ day, barbers, existing, onDone }: { day: string; barbers: Barber[]; existing: DayOverride[]; onDone: () => void }) {
+function OverrideForm({
+  day,
+  barbers,
+  existing,
+  self,
+  onDone,
+}: {
+  day: string
+  barbers: Barber[]
+  existing: DayOverride[]
+  self?: boolean
+  onDone: () => void
+}) {
   const [kind, setKind] = useState<OverrideKind>('closed')
   const [scope, setScope] = useState('')
   const [start, setStart] = useState('10:00')
   const [end, setEnd] = useState('14:00')
   const [note, setNote] = useState('')
   const create = useAdminMutation(() =>
-    api('/admin/overrides', {
+    api('/staff/overrides', {
       method: 'POST',
       json: {
         day,
@@ -101,7 +113,7 @@ function OverrideForm({ day, barbers, existing, onDone }: { day: string; barbers
       },
     }),
   )
-  const del = useAdminMutation((id: string) => api(`/admin/overrides/${id}`, { method: 'DELETE' }))
+  const del = useAdminMutation((id: string) => api(`/staff/overrides/${id}`, { method: 'DELETE' }))
   const name = (id: string | null) => (id ? (barbers.find((b) => b.id === id)?.name ?? 'Barbero') : 'Toda la barbería')
 
   return (
@@ -118,19 +130,22 @@ function OverrideForm({ day, barbers, existing, onDone }: { day: string; barbers
                   {o.start_min !== null && o.end_min !== null && ` · ${minutesToHHMM(o.start_min)}–${minutesToHHMM(o.end_min)}`} · {name(o.barber_id)}
                   {o.note && <span className="block text-xs opacity-80">{o.note}</span>}
                 </span>
-                <button
-                  type="button"
-                  onClick={() =>
-                    del.mutateAsync(o.id).then(
-                      () => toast.success('Excepción eliminada'),
-                      (e) => toast.error(errorMessage(e)),
-                    )
-                  }
-                  className="rounded-full p-1.5 hover:bg-ink/40"
-                  aria-label="Eliminar excepción"
-                >
-                  <Trash2 className="size-4" />
-                </button>
+                {/* Un barbero no puede borrar los cierres de toda la barbería. */}
+                {(!self || o.barber_id) && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      del.mutateAsync(o.id).then(
+                        () => toast.success('Excepción eliminada'),
+                        (e) => toast.error(errorMessage(e)),
+                      )
+                    }
+                    className="rounded-full p-1.5 hover:bg-ink/40"
+                    aria-label="Eliminar excepción"
+                  >
+                    <Trash2 className="size-4" />
+                  </button>
+                )}
               </li>
             )
           })}
@@ -214,22 +229,24 @@ function OverrideForm({ day, barbers, existing, onDone }: { day: string; barbers
   )
 }
 
-function WeeklyHours({ barber }: { barber: Barber }) {
+function WeeklyHours({ barber, self }: { barber: Barber; self?: boolean }) {
   const [hours, setHours] = useState<WorkingHours[]>(barber.hours)
   const dirty = JSON.stringify(hours) !== JSON.stringify(barber.hours)
   const save = useAdminMutation(() =>
-    api(`/admin/barbers/${barber.id}`, {
-      method: 'PUT',
-      json: {
-        name: barber.name,
-        title: barber.title,
-        bio: barber.bio,
-        avatar_url: barber.avatar_url,
-        active: barber.active ?? true,
-        user_id: barber.user_id ?? null,
-        hours,
-      },
-    }),
+    self
+      ? api('/staff/me/hours', { method: 'PUT', json: { hours } })
+      : api(`/admin/barbers/${barber.id}`, {
+          method: 'PUT',
+          json: {
+            name: barber.name,
+            title: barber.title,
+            bio: barber.bio,
+            avatar_url: barber.avatar_url,
+            active: barber.active ?? true,
+            user_id: barber.user_id ?? null,
+            hours,
+          },
+        }),
   )
   return (
     <div className="space-y-4">
@@ -256,12 +273,18 @@ function WeeklyHours({ barber }: { barber: Barber }) {
 
 export function AdminSchedule() {
   const barbers = useAdminBarbers()
+  if (barbers.isLoading) return <Skeleton className="h-80" />
+  return <ScheduleBoard barbers={barbers.data ?? []} />
+}
+
+/** Horario semanal + calendario de días especiales. Con `self`, el barbero edita solo el suyo. */
+export function ScheduleBoard({ barbers, self }: { barbers: Barber[]; self?: boolean }) {
   const overrides = useOverrides()
   const [barberId, setBarberId] = useState('')
   const [month, setMonth] = useState(todayInShop().slice(0, 7))
   const [day, setDay] = useState<string | null>(null)
 
-  const list = barbers.data ?? []
+  const list = barbers
   const barber = list.find((b) => b.id === barberId) ?? list[0]
   const shiftMonth = (n: number) => {
     const d = new Date(`${month}-15T12:00:00Z`)
@@ -275,8 +298,6 @@ export function AdminSchedule() {
     year: 'numeric',
     timeZone: 'UTC',
   }).format(new Date(`${month}-15T12:00:00Z`))
-
-  if (barbers.isLoading) return <Skeleton className="h-80" />
 
   return (
     <div className="grid gap-8 lg:grid-cols-2">
@@ -299,7 +320,7 @@ export function AdminSchedule() {
           )}
         </div>
         {barber ? (
-          <WeeklyHours key={barber.id + JSON.stringify(barber.hours)} barber={barber} />
+          <WeeklyHours key={barber.id + JSON.stringify(barber.hours)} barber={barber} self={self} />
         ) : (
           <p className="text-sm text-dust">Crea primero un barbero en la pestaña Equipo.</p>
         )}
@@ -373,7 +394,16 @@ export function AdminSchedule() {
       )}
 
       <Modal open={!!day} onClose={() => setDay(null)} title={day ? longDate(`${day}T12:00:00Z`) : ''}>
-        {day && <OverrideForm key={day} day={day} barbers={list} existing={(overrides.data ?? []).filter((o) => o.day === day)} onDone={() => setDay(null)} />}
+        {day && (
+          <OverrideForm
+            key={day}
+            day={day}
+            barbers={list}
+            self={self}
+            existing={(overrides.data ?? []).filter((o) => o.day === day)}
+            onDone={() => setDay(null)}
+          />
+        )}
       </Modal>
     </div>
   )

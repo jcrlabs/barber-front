@@ -1,8 +1,9 @@
 import { clsx } from 'clsx'
-import { BookOpen, CalendarDays, House, LayoutDashboard, LogOut, Menu, Scissors, User as UserIcon, X } from 'lucide-react'
+import { BookOpen, CalendarClock, CalendarDays, House, LayoutDashboard, LogOut, Menu, Scissors, User as UserIcon, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router'
 import { api } from '../lib/api'
+import { isAdmin, isStaff } from '../lib/roles'
 import { useAuth } from '../store/auth'
 import { AdminAlerts } from './AdminAlerts'
 import { Monogram, Pole } from './ui'
@@ -50,12 +51,17 @@ function Header() {
 
   const links = [
     user && { to: '/mis-citas', label: 'Mis citas', icon: CalendarDays },
-    user?.role === 'admin' && {
+    isStaff(user) && {
       to: '/agenda',
       label: 'Agenda',
       icon: Scissors,
     },
-    user?.role === 'admin' && {
+    isStaff(user) && {
+      to: '/mi-panel',
+      label: 'Mi panel',
+      icon: CalendarClock,
+    },
+    isAdmin(user) && {
       to: '/admin',
       label: 'Admin',
       icon: LayoutDashboard,
@@ -84,7 +90,7 @@ function Header() {
         <div className="hidden items-center gap-3 md:flex">
           {status === 'authed' && user ? (
             <>
-              {user.role === 'admin' && <AdminAlerts />}
+              {isStaff(user) && <AdminAlerts />}
               <Link to="/perfil" className="flex items-center gap-2 rounded-full py-1 pr-3 pl-1 text-sm text-ash hover:bg-smoke hover:text-bone">
                 <Monogram name={user.name} src={user.avatar_url} className="size-8 text-sm" />
                 {user.name.split(' ')[0]}
@@ -105,7 +111,7 @@ function Header() {
           </Link>
         </div>
         <div className="flex items-center gap-1 md:hidden">
-          {user?.role === 'admin' && <AdminAlerts />}
+          {isStaff(user) && <AdminAlerts />}
           <button className="rounded-full p-2" onClick={() => setOpen((o) => !o)} aria-label="Menú" aria-expanded={open}>
             {open ? <X /> : <Menu />}
           </button>
@@ -144,7 +150,7 @@ function Header() {
 /** Barra inferior tipo app en móvil: navegación con el pulgar y botón central de reserva. */
 function TabBar() {
   const { user } = useAuth()
-  const staff = user?.role === 'admin'
+  const staff = isStaff(user)
   const tab = ({ isActive }: { isActive: boolean }) =>
     clsx(
       'flex flex-1 flex-col items-center gap-1 pt-2.5 pb-2 font-mono text-[0.6rem] tracking-wider uppercase transition-colors',
@@ -171,9 +177,13 @@ function TabBar() {
             </>
           )}
         </NavLink>
-        {user?.role === 'admin' ? (
+        {isAdmin(user) ? (
           <NavLink to="/admin" className={tab}>
             <LayoutDashboard className="size-5" /> Admin
+          </NavLink>
+        ) : staff ? (
+          <NavLink to="/mi-panel" className={tab}>
+            <CalendarClock className="size-5" /> Panel
           </NavLink>
         ) : (
           <Link to="/#carta" className={tab({ isActive: false })}>
@@ -208,6 +218,16 @@ function Footer() {
   )
 }
 
+/** Transición suave entre pantallas. */
+function Page() {
+  const { pathname } = useLocation()
+  return (
+    <div key={pathname} className="animate-rise">
+      <Outlet />
+    </div>
+  )
+}
+
 export function Layout() {
   return (
     <div className="flex min-h-dvh flex-col">
@@ -219,7 +239,7 @@ export function Layout() {
       </a>
       <Header />
       <main id="main" className="flex-1">
-        <Outlet />
+        <Page />
       </main>
       <Footer />
       <TabBar />

@@ -37,6 +37,9 @@ function RecentBookings() {
             Instala la app gratuita <b className="text-bone">ntfy</b> en tu móvil (Android o iPhone).
           </li>
           <li>Suscríbete al topic privado de la barbería que te pasó el administrador del servidor.</li>
+          <li>
+            Cada barbero tiene además sus propios avisos (móvil, email o WhatsApp) en <b className="text-bone">Mi panel → Avisos</b>.
+          </li>
           <li>Listo: cada cita suena en el móvil aunque la app esté cerrada.</li>
         </ol>
         <p className="text-xs text-dust">La campana de arriba también avisa mientras el panel está abierto.</p>
