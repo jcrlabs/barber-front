@@ -27,11 +27,12 @@
   --font-mono: 'JetBrains Mono Variable', ui-monospace, monospace;
 
   --animate-pole: pole 1.6s linear infinite;
-  --animate-rise: rise 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  /* backwards (no both): al terminar no dejan transform y no rompen los position: fixed de dentro */
+  --animate-rise: rise 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
   --animate-print: print 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
   --animate-marquee: marquee 28s linear infinite;
-  --animate-flip: flip 0.55s cubic-bezier(0.2, 0.7, 0.2, 1) both;
-  --animate-fill: fill 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  --animate-flip: flip 0.55s cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
+  --animate-fill: fill 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
   --animate-float: float 6s ease-in-out infinite;
 
   @keyframes marquee {

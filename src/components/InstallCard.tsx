@@ -1,6 +1,7 @@
 import { Download, Share, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { isIOS, isStandalone } from '../lib/platform'
+import { Link } from 'react-router'
+import { isAndroid, isIOS, isStandalone } from '../lib/platform'
 import { Pole } from './ui'
 
 interface BeforeInstallPromptEvent extends Event {
@@ -17,7 +18,7 @@ const dismissed = () => {
   }
 }
 
-/** Invita a instalar la app: prompt nativo en Android/Chrome, instrucciones en iOS Safari. */
+/** Invita a instalar la app: prompt nativo en Android/Chrome; si no, enlace a /app con la APK o los pasos de iOS. */
 export function InstallCard() {
   const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null)
   const [hidden, setHidden] = useState(() => isStandalone() || dismissed())
@@ -31,7 +32,7 @@ export function InstallCard() {
     return () => window.removeEventListener('beforeinstallprompt', on)
   }, [])
 
-  if (hidden || (!deferred && !isIOS())) return null
+  if (hidden || (!deferred && !isIOS() && !isAndroid())) return null
 
   const close = () => {
     try {
@@ -51,10 +52,21 @@ export function InstallCard() {
           <p className="text-sm text-ash">Instala la app y reserva en dos toques.</p>
         ) : (
           <p className="text-sm text-ash">
-            Pulsa <Share className="inline size-4 text-brass" aria-label="Compartir" /> y luego «Añadir a pantalla de inicio».
+            {isIOS() ? (
+              <>
+                Pulsa <Share className="inline size-4 text-brass" aria-label="Compartir" /> y luego «Añadir a pantalla de inicio».
+              </>
+            ) : (
+              'Descarga la app y reserva en dos toques.'
+            )}
           </p>
         )}
       </div>
+      {!deferred && (
+        <Link to="/app" className="inline-flex h-10 shrink-0 items-center gap-2 rounded-full bg-brass px-4 text-sm font-bold text-ink">
+          <Download className="size-4" /> {isIOS() ? 'Cómo' : 'Bajar'}
+        </Link>
+      )}
       {deferred && (
         <button
           onClick={async () => {

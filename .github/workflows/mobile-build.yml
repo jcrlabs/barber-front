@@ -43,15 +43,32 @@ jobs:
       - name: Sync Capacitor
         run: npx cap sync android
 
-      - name: Build debug APK
+      # APK de release firmada siempre con la misma clave: las versiones nuevas se instalan encima.
+      - name: Build signed release APK
         working-directory: android
-        run: ./gradlew assembleDebug
+        env:
+          ANDROID_KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: |
+          [ -n "$ANDROID_KEYSTORE_B64" ] || { echo "::error::Falta el secret ANDROID_KEYSTORE_B64"; exit 1; }
+          export ANDROID_KEYSTORE_FILE="$RUNNER_TEMP/release.jks"
+          echo "$ANDROID_KEYSTORE_B64" | base64 -d > "$ANDROID_KEYSTORE_FILE"
+          if [[ "$GITHUB_REF" =~ ^refs/tags/v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+            export APP_VERSION_NAME="${BASH_REMATCH[1]}.${BASH_REMATCH[2]}.${BASH_REMATCH[3]}"
+            export APP_VERSION_CODE=$(( BASH_REMATCH[1] * 10000 + BASH_REMATCH[2] * 100 + BASH_REMATCH[3] ))
+          else
+            export APP_VERSION_NAME="0.0.0-dev" APP_VERSION_CODE=1
+          fi
+          ./gradlew assembleRelease
+          "$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)/apksigner" verify --print-certs app/build/outputs/apk/release/app-release.apk
+          rm -f "$ANDROID_KEYSTORE_FILE"
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: edgar-barber-debug.apk
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          name: edgar-barber.apk
+          path: android/app/build/outputs/apk/release/app-release.apk
           retention-days: 30
 
       # Publicamos la APK en la carpeta "barber" del NAS (Nextcloud), compartida con enlace público:
@@ -64,7 +81,7 @@ jobs:
         run: |
           VERSION="${GITHUB_REF_NAME}"
           [[ "$GITHUB_REF" == refs/tags/v* ]] || VERSION="dev-${GITHUB_SHA::7}"
-          APK=android/app/build/outputs/apk/debug/app-debug.apk
+          APK=android/app/build/outputs/apk/release/app-release.apk
           for name in "edgar-barber-${VERSION}.apk" "edgar-barber-latest.apk"; do
             curl -fsS --retry 3 -u "$NAS_WEBDAV_USER:$NAS_WEBDAV_PASSWORD" -T "$APK" "$NAS_DAV/$name"
           done

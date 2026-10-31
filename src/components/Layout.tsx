@@ -211,6 +211,9 @@ function Footer() {
           <Link to="/reservar" className="block hover:text-brass">
             Reservar online →
           </Link>
+          <Link to="/app" className="block hover:text-brass">
+            Descargar la app →
+          </Link>
           <Link to="/privacidad" className="block text-ash hover:text-brass">
             Política de privacidad
           </Link>

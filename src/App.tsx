@@ -18,6 +18,7 @@ const Agenda = lazy(() => import('./pages/Agenda'))
 const Admin = lazy(() => import('./pages/admin/Admin'))
 const BarberPanel = lazy(() => import('./pages/BarberPanel'))
 const Privacy = lazy(() => import('./pages/Privacy'))
+const GetApp = lazy(() => import('./pages/GetApp'))
 
 const fallback = (
   <div className="grid min-h-[50vh] place-items-center">
@@ -49,6 +50,7 @@ const router = createBrowserRouter([
       { path: '/login', element: <Login /> },
       { path: '/registro', element: <Register /> },
       { path: '/privacidad', element: lazyEl(<Privacy />) },
+      { path: '/app', element: lazyEl(<GetApp />) },
       { path: '/auth/callback', element: <AuthCallback /> },
       { path: '/mis-citas', element: <RequireAuth>{lazyEl(<MyAppointments />)}</RequireAuth> },
       { path: '/perfil', element: <RequireAuth>{lazyEl(<Profile />)}</RequireAuth> },
