@@ -47,6 +47,8 @@ export interface Barber {
   avatar_url: string
   active?: boolean
   hours: WorkingHours[]
+  /** Cuenta enlazada (solo en el panel de admin). */
+  account?: { name: string; email: string; role: Role } | null
 }
 
 export interface Slot {

@@ -1,4 +1,4 @@
-import { Pencil, Plus, Trash2, X } from 'lucide-react'
+import { Pencil, Plus, Trash2, UserRound, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { Button, Field, Input, Modal, Monogram, Skeleton, Textarea } from '../../components/ui'
@@ -65,7 +65,15 @@ export function HoursEditor({ value, onChange }: { value: WorkingHours[]; onChan
 }
 
 /** Cuenta con la que el barbero entra a su panel. Al enlazarla pasa a tener rol de barbero. */
-function AccountPicker({ value, onChange }: { value: string | null; onChange: (id: string | null) => void }) {
+function AccountPicker({
+  value,
+  known,
+  onChange,
+}: {
+  value: string | null
+  known?: { name: string; email: string } | null
+  onChange: (id: string | null) => void
+}) {
   const [input, setInput] = useState('')
   const [q, setQ] = useState('')
   useEffect(() => {
@@ -73,8 +81,7 @@ function AccountPicker({ value, onChange }: { value: string | null; onChange: (i
     return () => clearTimeout(t)
   }, [input])
   const { data } = useAdminUsers({ q, role: '', offset: 0 })
-  const all = useAdminUsers({ q: '', role: '', offset: 0 })
-  const linked = [...(all.data?.items ?? []), ...(data?.items ?? [])].find((u) => u.id === value)
+  const linked = data?.items.find((u) => u.id === value) ?? (value ? known : undefined)
   return (
     <div className="space-y-2">
       <span className="label">Cuenta del barbero</span>
@@ -102,7 +109,9 @@ function AccountPicker({ value, onChange }: { value: string | null; onChange: (i
               {data?.items.length === 0 && <li className="px-3 py-2 text-sm text-dust">Sin resultados</li>}
             </ul>
           )}
-          <p className="text-xs text-dust">Con su cuenta enlazada, el barbero edita su horario y recibe sus propias citas.</p>
+          <p className="text-xs text-dust">
+            Con su cuenta enlazada pasa a tener rol de barbero: edita su horario y recibe sus propias citas. También puedes darle el rol desde Usuarios.
+          </p>
         </>
       )}
     </div>
@@ -151,7 +160,7 @@ function BarberForm({ initial, onDone }: { initial?: Barber; onDone: () => void 
       <Field label="Foto (URL https)">
         <Input type="url" value={b.avatar_url} onChange={(e) => setB({ ...b, avatar_url: e.target.value })} placeholder="https://…" />
       </Field>
-      <AccountPicker value={b.user_id} onChange={(user_id) => setB({ ...b, user_id })} />
+      <AccountPicker value={b.user_id} known={initial?.account} onChange={(user_id) => setB({ ...b, user_id })} />
       <div className="space-y-2">
         <span className="label">Horario semanal</span>
         <HoursEditor value={b.hours} onChange={(hours) => setB({ ...b, hours })} />
@@ -222,9 +231,17 @@ export function AdminBarbers() {
                 </span>
               ))}
             </div>
-            <p className="text-xs text-dust">
-              {b.active ? 'Acepta reservas' : 'Inactivo'} · {b.user_id ? 'Con cuenta propia' : 'Sin cuenta enlazada'}
-            </p>
+            {b.account ? (
+              <p className="flex items-center gap-2 rounded-xl border border-brass/30 bg-ink px-3 py-2 text-xs">
+                <UserRound className="size-3.5 shrink-0 text-brass" />
+                <span className="min-w-0 truncate">
+                  <b className="text-bone">{b.account.name}</b> <span className="text-dust">{b.account.email}</span>
+                </span>
+              </p>
+            ) : (
+              <p className="rounded-xl border border-dashed border-line px-3 py-2 text-xs text-dust">Sin cuenta: no tiene panel propio. Enlázala al editar.</p>
+            )}
+            <p className="text-xs text-dust">{b.active ? 'Acepta reservas' : 'Inactivo'}</p>
           </div>
         ))}
       </div>

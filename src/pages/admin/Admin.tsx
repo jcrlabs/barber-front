@@ -13,7 +13,7 @@ const tabs = [
   { id: 'citas', label: 'Citas', icon: CalendarDays, el: AdminAppointments },
   { id: 'horario', label: 'Horario', icon: CalendarClock, el: AdminSchedule },
   { id: 'servicios', label: 'Servicios', icon: Scissors, el: AdminServices },
-  { id: 'equipo', label: 'Barbero', icon: UsersRound, el: AdminBarbers },
+  { id: 'equipo', label: 'Barberos', icon: UsersRound, el: AdminBarbers },
   { id: 'usuarios', label: 'Usuarios', icon: Users, el: AdminUsers },
 ] as const
 

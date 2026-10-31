@@ -1,10 +1,10 @@
-import { Search } from 'lucide-react'
+import { Scissors, Search } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { Input, Monogram, Select, Skeleton } from '../../components/ui'
 import { api, errorMessage } from '../../lib/api'
 import { shortDate } from '../../lib/format'
-import { useAdminMutation, useAdminUsers } from '../../lib/queries'
+import { useAdminBarbers, useAdminMutation, useAdminUsers } from '../../lib/queries'
 import type { Role } from '../../lib/types'
 import { useAuth } from '../../store/auth'
 
@@ -20,6 +20,8 @@ export function AdminUsers() {
     return () => clearTimeout(t)
   }, [input])
   const { data, isLoading } = useAdminUsers({ q, role, offset: 0 })
+  const barbers = useAdminBarbers()
+  const barberOf = (userId: string) => barbers.data?.find((b) => b.user_id === userId)
   const setUserRole = useAdminMutation(({ id, role }: { id: string; role: Role }) => api(`/admin/users/${id}/role`, { method: 'PATCH', json: { role } }))
 
   return (
@@ -44,7 +46,14 @@ export function AdminUsers() {
           <li key={u.id} className="flex flex-wrap items-center gap-4 p-4">
             <Monogram name={u.name} src={u.avatar_url} className="size-10 text-sm" />
             <div className="min-w-0 flex-1">
-              <p className="font-semibold">{u.name}</p>
+              <p className="flex flex-wrap items-center gap-2 font-semibold">
+                {u.name}
+                {barberOf(u.id) && (
+                  <span className="inline-flex items-center gap-1 rounded-full border border-brass/40 px-2 py-0.5 font-mono text-[0.65rem] text-brass uppercase">
+                    <Scissors className="size-3" /> Ficha: {barberOf(u.id)!.name}
+                  </span>
+                )}
+              </p>
               <p className="truncate text-sm text-ash">
                 {u.email} {u.providers.length > 0 && <span className="text-dust">· {u.providers.join(', ')}</span>}
               </p>
@@ -55,12 +64,20 @@ export function AdminUsers() {
                 value={u.role}
                 disabled={u.id === me?.id}
                 aria-label={`Rol de ${u.name}`}
-                onChange={(e) =>
-                  setUserRole.mutateAsync({ id: u.id, role: e.target.value as Role }).then(
-                    () => toast.success('Rol actualizado'),
+                onChange={(e) => {
+                  const next = e.target.value as Role
+                  void setUserRole.mutateAsync({ id: u.id, role: next }).then(
+                    () =>
+                      toast.success(
+                        next === 'barber'
+                          ? `${u.name} ya es barbero: tiene ficha propia y verá su panel al volver a entrar. Ponle horario en Barberos.`
+                          : next === 'client' && barberOf(u.id)
+                            ? 'Rol actualizado. Su ficha de barbero queda sin cuenta (se conserva el historial).'
+                            : 'Rol actualizado',
+                      ),
                     (err) => toast.error(errorMessage(err)),
                   )
-                }
+                }}
               >
                 {Object.entries(roles).map(([k, v]) => (
                   <option key={k} value={k}>
