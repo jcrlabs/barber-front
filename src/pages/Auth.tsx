@@ -179,6 +179,13 @@ export function Register() {
         <Button type="submit" size="lg" className="w-full" loading={isSubmitting}>
           Crear cuenta
         </Button>
+        <p className="text-center text-xs text-dust">
+          Al crear la cuenta aceptas la{' '}
+          <Link to="/privacidad" className="underline hover:text-brass">
+            política de privacidad
+          </Link>
+          .
+        </p>
       </form>
     </AuthShell>
   )
