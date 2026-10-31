@@ -3,7 +3,7 @@ import { ArrowRight, CalendarCheck, Phone, Scissors, Zap } from 'lucide-react'
 import { useEffect } from 'react'
 import { Link, useLocation } from 'react-router'
 import { InstallCard } from '../components/InstallCard'
-import { Marquee, Reveal, Rotator, Spotlight } from '../components/motion'
+import { Marquee, Reveal, Spotlight } from '../components/motion'
 import { Monogram, Pole, SectionTitle, Skeleton } from '../components/ui'
 import { dayParts, duration, minutesToHHMM, time, todayInShop, WEEKDAYS } from '../lib/format'
 import { useBarbers, useDays, useServices, useSlots } from '../lib/queries'
@@ -84,10 +84,7 @@ function Hero() {
           <h1 className="font-display text-[clamp(4.2rem,13vw,10.5rem)] leading-[0.82] font-black tracking-[-0.02em] uppercase">
             Corte
             <br />
-            <span className="text-stroke">de</span>{' '}
-            <em className="font-serif font-normal tracking-normal text-brass normal-case italic [perspective:600px]">
-              <Rotator words={['barrio', 'estilo']} />
-            </em>
+            <em className="font-serif text-[0.82em] font-normal tracking-normal text-brass normal-case italic lg:text-[0.68em]">personalizado</em>
           </h1>
           <p className="max-w-md text-lg text-ash">Elige día y hora para tu corte con Edgar. Ves los huecos libres al momento y reservas sin llamar.</p>
           <div className="flex flex-wrap items-center gap-4">
