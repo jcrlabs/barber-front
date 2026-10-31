@@ -86,7 +86,7 @@ function Hero() {
             <br />
             <span className="text-stroke">de</span>{' '}
             <em className="font-serif font-normal tracking-normal text-brass normal-case italic [perspective:600px]">
-              <Rotator words={['precisión', 'oficio', 'estilo', 'barrio']} />
+              <Rotator words={['barrio', 'estilo']} />
             </em>
           </h1>
           <p className="max-w-md text-lg text-ash">Elige día y hora para tu corte con Edgar. Ves los huecos libres al momento y reservas sin llamar.</p>
