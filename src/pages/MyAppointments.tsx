@@ -128,7 +128,7 @@ export default function MyAppointments() {
 
       {!isLoading && !data?.length && (
         <EmptyState icon={<CalendarDays className="size-8" />} title="Aún sin citas">
-          Tu primera reserva te lleva 30 segundos.
+          Cuando reserves, tus citas aparecerán aquí.
         </EmptyState>
       )}
 

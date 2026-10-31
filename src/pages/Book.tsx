@@ -6,7 +6,7 @@ import { toast } from 'sonner'
 import { Button, EmptyState, Field, Input, Monogram, Skeleton, Textarea } from '../components/ui'
 import { ApiError, errorMessage } from '../lib/api'
 import { dayParts, duration, hourOf, longDate, money, time } from '../lib/format'
-import { useBarbers, useBook, useDays, useMeta, useServices, useSlots } from '../lib/queries'
+import { useBarbers, useBook, useDays, useServices, useSlots } from '../lib/queries'
 import type { Appointment, Barber, Service, Slot } from '../lib/types'
 import { useAuth } from '../store/auth'
 
@@ -34,17 +34,20 @@ function useBookingParams() {
   }
 }
 
-function Progress({ step, onJump, max }: { step: number; onJump: (i: number) => void; max: number }) {
+function Progress({ step, onJump, max, first }: { step: number; onJump: (i: number) => void; max: number; first: number }) {
+  // Los pasos con una única opción (un solo servicio o un solo barbero) se eligen solos y no se muestran.
+  const visible = STEPS.map((s, i) => ({ s, i })).filter(({ i }) => i >= first)
+  const pos = visible.findIndex(({ i }) => i === step)
   return (
     <div className="space-y-4">
       <div className="relative h-1.5 overflow-hidden rounded-full bg-smoke">
         <div
           className="pole animate-pole absolute inset-y-0 left-0 rounded-full transition-all duration-500"
-          style={{ width: `${((step + 1) / STEPS.length) * 100}%` }}
+          style={{ width: `${((pos + 1) / visible.length) * 100}%` }}
         />
       </div>
-      <ol className="grid grid-cols-4 gap-2">
-        {STEPS.map((s, i) => (
+      <ol className="grid gap-2" style={{ gridTemplateColumns: `repeat(${visible.length}, minmax(0, 1fr))` }}>
+        {visible.map(({ s, i }, n) => (
           <li key={s}>
             <button
               disabled={i > max}
@@ -54,7 +57,7 @@ function Progress({ step, onJump, max }: { step: number; onJump: (i: number) => 
                 i === step ? 'text-brass' : i <= max ? 'text-ash hover:text-bone' : 'text-dust',
               )}
             >
-              <span className="hidden sm:inline">{String(i + 1).padStart(2, '0')} · </span>
+              <span className="hidden sm:inline">{String(n + 1).padStart(2, '0')} · </span>
               {s}
             </button>
           </li>
@@ -321,7 +324,7 @@ function Success({ appt, service, barber }: { appt: Appointment; service?: Servi
         </h1>
         <p className="text-lg text-ash">
           Te esperamos el <span className="text-bone">{longDate(appt.starts_at)}</span> a las{' '}
-          <span className="font-mono text-bone">{time(appt.starts_at)}</span> con {appt.barber_name}. Puedes cancelar gratis hasta 2 horas antes.
+          <span className="font-mono text-bone">{time(appt.starts_at)}</span>.
         </p>
         <div className="flex flex-wrap gap-3">
           <Link to="/mis-citas" className="inline-flex h-12 items-center rounded-full bg-brass px-6 font-bold text-ink hover:bg-bone">
@@ -344,7 +347,6 @@ export default function Book() {
   const { set } = p
   const services = useServices()
   const barbers = useBarbers()
-  const meta = useMeta()
   const user = useAuth((s) => s.user)
   const navigate = useNavigate()
   const location = useLocation()
@@ -354,6 +356,19 @@ export default function Book() {
   const phoneValue = phone ?? user?.phone ?? ''
   const phoneOk = /^\+?[0-9 ()-]{6,30}$/.test(phoneValue.trim())
   const [done, setDone] = useState<Appointment | null>(null)
+
+  // Con un único servicio o barbero no tiene sentido preguntar: lo elegimos y saltamos el paso.
+  const onlyService = services.data?.length === 1 ? services.data[0]!.id : null
+  const onlyBarber = barbers.data?.length === 1 ? barbers.data[0]!.id : null
+  const first = onlyService ? (onlyBarber ? 2 : 1) : 0
+  useEffect(() => {
+    if (!services.data || !barbers.data) return
+    const patch: Record<string, string> = {}
+    if (onlyService && !p.service) patch.s = onlyService
+    if (onlyBarber && !p.barber) patch.b = onlyBarber
+    if (p.step < first) patch.step = String(first)
+    if (Object.keys(patch).length) set(patch)
+  }, [services.data, barbers.data, onlyService, onlyBarber, first, p.service, p.barber, p.step, set])
 
   const service = services.data?.find((s) => s.id === p.service)
   const barberParam = p.barber === 'any' ? null : p.barber
@@ -411,7 +426,7 @@ export default function Book() {
             <h1 className="font-display text-5xl leading-[0.9] font-black uppercase sm:text-6xl">
               Reserva <em className="font-serif font-normal text-brass normal-case italic">tu silla</em>
             </h1>
-            <Progress step={step} max={max} onJump={go} />
+            <Progress step={step} max={max} onJump={go} first={first} />
           </div>
 
           <div key={step} className="animate-rise">
@@ -431,16 +446,10 @@ export default function Book() {
               <div className="space-y-6">
                 <div className="rounded-2xl border border-line bg-coal p-6">
                   <p className="label mb-2">Todo listo</p>
-                  <p className="text-ash">
-                    Revisa tu ticket. Puedes cancelar sin coste hasta {Math.round((meta.data?.cancel_window_min ?? 120) / 60)} h antes de la cita.
-                  </p>
+                  <p className="text-ash">Revisa tu ticket y deja tu móvil: Edgar te llamará si hay cualquier cambio.</p>
                 </div>
                 {user && (
-                  <Field
-                    label="Teléfono de contacto"
-                    error={phoneValue && !phoneOk ? 'Teléfono no válido' : undefined}
-                    hint="Obligatorio. Edgar te llamará solo si hay algún cambio en tu cita."
-                  >
+                  <Field label="Teléfono de contacto" error={phoneValue && !phoneOk ? 'Teléfono no válido' : undefined} hint="Obligatorio.">
                     <Input
                       id="book-phone"
                       type="tel"
@@ -465,7 +474,7 @@ export default function Book() {
             )}
           </div>
 
-          {step > 0 && (
+          {step > first && (
             <button onClick={() => go(step - 1)} className="inline-flex items-center gap-2 text-sm font-semibold text-ash hover:text-bone">
               <ArrowLeft className="size-4" /> Paso anterior
             </button>

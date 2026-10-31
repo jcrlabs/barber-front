@@ -3,6 +3,8 @@ import { BookOpen, CalendarDays, House, LayoutDashboard, LogOut, Menu, Scissors,
 import { useEffect, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router'
 import { api } from '../lib/api'
+import { minutesToHHMM, WEEKDAYS } from '../lib/format'
+import { useBarbers } from '../lib/queries'
 import { useAuth } from '../store/auth'
 import { AdminAlerts } from './AdminAlerts'
 import { Monogram, Pole } from './ui'
@@ -188,25 +190,44 @@ function TabBar() {
   )
 }
 
+/** Horario real del barbero, el mismo que edita el admin. */
+function FooterHours() {
+  const { data } = useBarbers()
+  const hours = data?.[0]?.hours ?? []
+  const days = [1, 2, 3, 4, 5, 6, 0].filter((d) => hours.some((h) => h.weekday === d))
+  return (
+    <div className="space-y-2 text-sm">
+      <p className="label">Horario</p>
+      {days.length === 0 && <p className="text-ash">Consulta los huecos al reservar.</p>}
+      {days.map((d) => (
+        <p key={d} className="flex gap-3">
+          <span className="w-10 text-ash">{WEEKDAYS[d]}</span>
+          <span className="font-mono text-xs leading-5">
+            {hours
+              .filter((h) => h.weekday === d)
+              .map((h) => `${minutesToHHMM(h.start_min)}–${minutesToHHMM(h.end_min)}`)
+              .join(' · ')}
+          </span>
+        </p>
+      ))}
+    </div>
+  )
+}
+
 function Footer() {
   return (
     <footer className="mt-24 border-t border-line pb-24 md:pb-0">
       <div className="mx-auto grid max-w-7xl gap-10 px-5 py-14 sm:grid-cols-3">
         <div className="space-y-4">
           <Logo />
-          <p className="max-w-xs text-sm text-ash">Barbería de autor. Navaja, tijera y conversación desde el primer día, de la mano de Edgar.</p>
+          <p className="max-w-xs text-sm text-ash">La barbería de Edgar. Reserva tu corte online.</p>
         </div>
-        <div className="space-y-2 text-sm">
-          <p className="label">Visítanos</p>
-          <p>Calle Mayor 12</p>
-          <p className="text-ash">Mar – Sáb · 10:00 – 20:30</p>
-        </div>
+        <FooterHours />
         <div className="space-y-2 text-sm">
           <p className="label">Reservas</p>
           <Link to="/reservar" className="block hover:text-brass">
             Reservar online →
           </Link>
-          <p className="text-ash">Cancelación gratuita hasta 2 h antes.</p>
         </div>
       </div>
       <div className="pole h-1.5 opacity-80" aria-hidden />

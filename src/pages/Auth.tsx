@@ -66,7 +66,7 @@ function useAfterLogin() {
 }
 
 const loginSchema = z.object({
-  email: z.email('Email no válido'),
+  email: z.string().trim().min(1, 'Introduce tu email o usuario').max(254),
   password: z.string().min(1, 'Introduce tu contraseña'),
 })
 
@@ -91,7 +91,10 @@ export function Login() {
       accent="de vuelta"
       footer={
         <>
-          ¿Primera vez? <Link to={`/registro?next=${encodeURIComponent(next)}`} className="font-semibold text-brass hover:text-bone">Crea tu cuenta</Link>
+          ¿Primera vez?{' '}
+          <Link to={`/registro?next=${encodeURIComponent(next)}`} className="font-semibold text-brass hover:text-bone">
+            Crea tu cuenta
+          </Link>
         </>
       }
     >
@@ -102,8 +105,8 @@ export function Login() {
       )}
       <SocialButtons next={next} />
       <form onSubmit={onSubmit} className="space-y-4" noValidate>
-        <Field label="Email" error={errors.email?.message}>
-          <Input type="email" autoComplete="email" aria-invalid={!!errors.email} {...form.register('email')} />
+        <Field label="Email o usuario" error={errors.email?.message}>
+          <Input type="text" inputMode="email" autoCapitalize="none" autoComplete="username" aria-invalid={!!errors.email} {...form.register('email')} />
         </Field>
         <Field label="Contraseña" error={errors.password?.message}>
           <Input type="password" autoComplete="current-password" aria-invalid={!!errors.password} {...form.register('password')} />
@@ -119,7 +122,11 @@ export function Login() {
 const registerSchema = z.object({
   name: z.string().trim().min(2, 'Mínimo 2 caracteres').max(80),
   email: z.email('Email no válido').max(254),
-  phone: z.union([z.literal(''), z.string().regex(/^\+?[0-9 ()-]{6,30}$/, 'Teléfono no válido')]),
+  phone: z
+    .string()
+    .trim()
+    .min(1, 'El móvil es obligatorio')
+    .regex(/^\+?[0-9 ()-]{6,30}$/, 'Móvil no válido'),
   password: z
     .string()
     .min(8, 'Mínimo 8 caracteres')
@@ -148,7 +155,10 @@ export function Register() {
       accent="te espera"
       footer={
         <>
-          ¿Ya tienes cuenta? <Link to={`/login?next=${encodeURIComponent(next)}`} className="font-semibold text-brass hover:text-bone">Entra</Link>
+          ¿Ya tienes cuenta?{' '}
+          <Link to={`/login?next=${encodeURIComponent(next)}`} className="font-semibold text-brass hover:text-bone">
+            Entra
+          </Link>
         </>
       }
     >
@@ -160,8 +170,8 @@ export function Register() {
         <Field label="Email" error={errors.email?.message}>
           <Input type="email" autoComplete="email" aria-invalid={!!errors.email} {...form.register('email')} />
         </Field>
-        <Field label="Teléfono (opcional)" error={errors.phone?.message} hint="Solo para avisarte si hay cambios en tu cita.">
-          <Input type="tel" autoComplete="tel" aria-invalid={!!errors.phone} {...form.register('phone')} />
+        <Field label="Móvil" error={errors.phone?.message}>
+          <Input type="tel" inputMode="tel" autoComplete="tel" placeholder="600 000 000" aria-invalid={!!errors.phone} {...form.register('phone')} />
         </Field>
         <Field label="Contraseña" error={errors.password?.message} hint="8+ caracteres, con letras y números.">
           <Input type="password" autoComplete="new-password" aria-invalid={!!errors.password} {...form.register('password')} />
